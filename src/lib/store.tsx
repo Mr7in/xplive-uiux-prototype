@@ -1,6 +1,7 @@
 import * as React from "react";
 import { markets as seedMarkets, type Market, type Side, multiplier } from "@/data/markets";
 import { depositAddressFor, mockHex } from "@/lib/chain";
+import { seedPresets, type Preset } from "@/data/companion";
 
 export type Role = "viewer" | "creator" | "admin";
 
@@ -61,6 +62,7 @@ export interface PayoutAddress { address: string; verified: boolean; addedMinsAg
 export const accounts: Account[] = [
   { id: "u-viewer", email: "test.viewer@xplive.com", name: "Test Viewer", handle: "testviewer", role: "viewer" },
   { id: "u-streamer", email: "test.streamer@xplive.com", name: "Nordic Slots God", handle: "nordic-slots-god", role: "creator", channel: "nordic-slots-god" },
+  { id: "u-marble", email: "test.marble@xplive.com", name: "Marble Rally", handle: "marblerally", role: "creator", channel: "marblerally" },
   { id: "u-admin", email: "test.admin@xplive.com", name: "Test Admin", handle: "testadmin", role: "admin" },
 ];
 
@@ -143,6 +145,47 @@ interface State {
   transfers: Transfer[];
   payoutAddress: PayoutAddress | null;
   faucetClaimedToday: boolean;
+  /** Saved quick questions per channel, shown in the companion app. */
+  presets: Record<string, Preset[]>;
+}
+
+/**
+ * Creator question actions are mirrored to every open tab of the prototype (BroadcastChannel),
+ * so Studio in one window and the companion app in another stay in step.
+ * PLACEHOLDER: realtime channel (WebSocket / SSE) from the platform API.
+ */
+type SyncMsg =
+  | { a: "create"; m: Market }
+  | { a: "close"; id: string; at: number }
+  | { a: "extend"; id: string; sec: number }
+  | { a: "propose"; id: string; result: Side | "VOID"; note: string; at: number }
+  | { a: "presets"; handle: string; list: Preset[] };
+
+function reduceSync(s: State, msg: SyncMsg): State {
+  switch (msg.a) {
+    case "create":
+      return s.markets.some((m) => m.id === msg.m.id) ? s : { ...s, markets: [msg.m, ...s.markets] };
+    case "close":
+      return { ...s, markets: s.markets.map((m) => (m.id === msg.id && m.status === "open" ? { ...m, status: "awaiting", secondsLeft: 0, closedMinsAgo: 0, closedAt: msg.at } : m)) };
+    case "extend":
+      return { ...s, markets: s.markets.map((m) => (m.id === msg.id && m.status === "open" ? { ...m, secondsLeft: (m.secondsLeft ?? 0) + msg.sec } : m)) };
+    case "presets":
+      return { ...s, presets: { ...s.presets, [msg.handle]: msg.list } };
+    case "propose": {
+      const { id, result, note, at } = msg;
+      if (!s.markets.some((m) => m.id === id && m.status === "awaiting")) return s;
+      const markets = s.markets.map((m) =>
+        m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator.", settledAt: at } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: at, paidMinsAgo: 0, paidAt: at + 120_000, evidence: note }
+      );
+      const target = markets.find((m) => m.id === id)!;
+      let credit = 0;
+      s.positions.filter((p) => p.marketId === id && p.tx === "confirmed").forEach((p) => {
+        if (result === "VOID") credit += p.amount;
+        else if (p.side === result) credit += backToYou(target, p);
+      });
+      return { ...s, markets, balance: Math.round((s.balance + credit) * 100) / 100 };
+    }
+  }
 }
 
 interface Store extends State {
@@ -154,6 +197,7 @@ interface Store extends State {
   predict: (marketId: string, side: Side, amount: number) => string;
   tip: (handle: string, amount: number) => void;
   createMarket: (handle: string, question: string, rule: string, seconds: number) => Market;
+  savePresets: (handle: string, list: Preset[]) => void;
   closeMarket: (marketId: string) => void;
   extendMarket: (marketId: string, seconds: number) => void;
   proposeResult: (marketId: string, result: Side | "VOID", note: string) => void;
@@ -191,7 +235,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     transfers: seedTransfers,
     payoutAddress: null,
     faucetClaimedToday: false,
+    presets: seedPresets,
   }));
+
+  // Cross-tab sync of creator question actions (see SyncMsg).
+  const chan = React.useRef<BroadcastChannel | null>(null);
+  React.useEffect(() => {
+    let c: BroadcastChannel | null = null;
+    try { c = new BroadcastChannel("xplive.sync"); } catch { return; }
+    c.onmessage = (e: MessageEvent<SyncMsg>) => setState((s) => reduceSync(s, e.data));
+    chan.current = c;
+    return () => { c?.close(); chan.current = null; };
+  }, []);
+  const sync = React.useCallback((msg: SyncMsg) => {
+    setState((s) => reduceSync(s, msg));
+    try { chan.current?.postMessage(msg); } catch { /* channel closed */ }
+  }, []);
 
   // Countdown: open questions tick down and close themselves. Other viewers keep joining, so pools
   // and payout estimates move while a ticket is open. PLACEHOLDER: pool pricing engine updates.
@@ -308,26 +367,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         })),
       createMarket: (handle, question, rule, seconds) => {
         const m: Market = { id: `m-${Date.now()}`, handle, question, rule, status: "open", yesPool: 0, noPool: 0, predictors: 0, secondsLeft: seconds };
-        setState((s) => ({ ...s, markets: [m, ...s.markets] }));
+        sync({ a: "create", m });
         return m;
       },
-      closeMarket: (id) =>
-        setState((s) => ({ ...s, markets: s.markets.map((m) => (m.id === id ? { ...m, status: "awaiting", secondsLeft: 0, closedMinsAgo: 0 } : m)) })),
-      extendMarket: (id, sec) =>
-        setState((s) => ({ ...s, markets: s.markets.map((m) => (m.id === id && m.status === "open" ? { ...m, secondsLeft: (m.secondsLeft ?? 0) + sec } : m)) })),
-      proposeResult: (id, result, note) =>
-        setState((s) => {
-          const markets = s.markets.map((m) =>
-            m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator." } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: Date.now(), paidMinsAgo: 0, paidAt: Date.now() + 120_000, evidence: note }
-          );
-          const target = markets.find((m) => m.id === id)!;
-          let credit = 0;
-          s.positions.filter((p) => p.marketId === id && p.tx === "confirmed").forEach((p) => {
-            if (result === "VOID") credit += p.amount;
-            else if (p.side === result) credit += backToYou(target, p);
-          });
-          return { ...s, markets, balance: Math.round((s.balance + credit) * 100) / 100 };
-        }),
+      savePresets: (handle, list) => sync({ a: "presets", handle, list }),
+      closeMarket: (id) => sync({ a: "close", id, at: Date.now() }),
+      extendMarket: (id, sec) => sync({ a: "extend", id, sec }),
+      proposeResult: (id, result, note) => sync({ a: "propose", id, result, note, at: Date.now() }),
       adminDecide: (id, decision, note) =>
         setState((s) => ({
           ...s,
@@ -382,7 +428,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setPayoutAddress: (address) => setState((s) => ({ ...s, payoutAddress: { address, verified: false, addedMinsAgo: 0 } })),
       verifyPayoutAddress: () => setState((s) => ({ ...s, payoutAddress: s.payoutAddress ? { ...s.payoutAddress, verified: true } : null })),
     };
-  }, [state, confirm]);
+  }, [state, confirm, sync]);
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }

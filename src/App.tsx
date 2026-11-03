@@ -30,6 +30,8 @@ import { ReceiptProvider } from "@/components/trust";
 import StudioDashboard from "@/pages/studio/Dashboard";
 import StudioPredictions from "@/pages/studio/Predictions";
 import ProposeResult from "@/pages/studio/ProposeResult";
+import StudioCompanion from "@/pages/studio/Companion";
+import Companion from "@/pages/companion/Companion";
 import * as S from "@/pages/studio/Tools";
 import * as A from "@/pages/admin/Admin";
 
@@ -49,12 +51,15 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Login mode="signup" />} />
+              {/* Streamer companion app: second-screen question controls, one link per channel */}
+              <Route path="/control/:handle" element={<Companion />} />
 
               <Route path="/studio" element={<StudioLayout />}>
                 <Route index element={<StudioDashboard />} />
                 <Route path="stream" element={<S.StreamSetup />} />
                 <Route path="predictions" element={<StudioPredictions />} />
                 <Route path="predictions/:id/result" element={<ProposeResult />} />
+                <Route path="companion" element={<StudioCompanion />} />
                 <Route path="content" element={<S.Content />} />
                 <Route path="clips" element={<S.Clips />} />
                 <Route path="analytics" element={<S.Analytics />} />

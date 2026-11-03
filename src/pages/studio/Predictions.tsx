@@ -15,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn, fmt, fmtUSDC, timeLeft } from "@/lib/utils";
+import { CompanionPromo } from "./Companion";
 
 const DURATIONS = [
   { v: "60", l: "1 min" }, { v: "120", l: "2 min" }, { v: "300", l: "5 min" }, { v: "600", l: "10 min" }, { v: "900", l: "15 min" },
@@ -130,6 +131,7 @@ export default function StudioPredictions() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <PageHeader title="Predictions" description="Ask YES/NO questions about what happens on your stream. One question runs at a time." />
+      <CompanionPromo />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <AskQuestion />
         <div className="space-y-4">

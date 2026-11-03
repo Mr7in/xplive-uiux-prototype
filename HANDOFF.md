@@ -17,6 +17,7 @@ Test accounts (any password of 6+ characters works in the mock):
 |---------|---------------------------|
 | Viewer  | test.viewer@xplive.com    |
 | Creator | test.streamer@xplive.com (owns the channel Nordic Slots God) |
+| Creator | test.marble@xplive.com (owns Marble Rally, has an open question) |
 | Admin   | test.admin@xplive.com     |
 
 ## Brand (xp.live CVI · Midnight Contrast)
@@ -77,6 +78,17 @@ What changed, mapped to the brief:
 - **Demo loop:** other viewers keep joining open questions (pools and estimates move). A question that closes during the demo is resolved by its creator 40 s later and paid 5 s after that, so a tester can follow one prediction from ticket to "back to you". Iron Ines closes about 40 s after load: good for testing the closed-ticket state.
 - **Design rules:** neutral black ground, Outfit everywhere (Space Mono for figures), lime only on the primary action, the user's own position and positive figures; no gradients, glass or uppercase eyebrows on viewer screens; header nav Browse / Predictions / How it works; outlined Log in beside filled Sign up; full-screen phone menu.
 
+## Streamer companion app
+
+Second-screen controls for the streamer who asked the question, so they can run it from a phone, tablet or second monitor while the game is full screen.
+
+- **Link per channel:** `/control/:handle` (hosted: `ui.xplive.site/#/control/nordic-slots-god`). Only the channel owner's credentials unlock it; any other account gets "This account doesn't own <channel>". Production: `xp.live/control/<handle>` with BrowserRouter.
+- **Screens** (`pages/companion/Companion.tsx`): login, Ask (saved quick questions, write a new one, 1/2/5/10 min), Live (big countdown, pools, +30s / +1m / +5m, hold to close, void), Results (big YES / NO hold buttons with pool and viewer counts, evidence stream time captured at close with "Mark now", evidence type, void with reason, auto-void countdown), Recent results, lock screen.
+- **Safety:** settle, void and close need a press and hold (Short / Normal / Long, per device). When a question closes the phone vibrates and jumps to Results. Screen Wake Lock keeps the screen on. Desktop hotkeys: hold Y / N to settle the oldest question, C to close.
+- **Phone:** tabs Ask/Live, Results, Recent. **Tablet / monitor (768 px and up):** Live and Results side by side.
+- **Studio > Companion app** (`pages/studio/Companion.tsx`): link with copy and QR, logged-in devices with log out, quick question editor (feeds the companion), "Built for mid-game" notes. A promo strip links to it from the Live dashboard and Predictions.
+- **Sync:** question actions (create, close, extend, settle, void, saved questions) go through `sync()` in `lib/store.tsx` and are mirrored to every open tab with `BroadcastChannel`, so Studio in one window and the companion in another stay in step. Swap for the realtime API.
+
 ## Placeholder register
 
 Search the code for `PLACEHOLDER:` to find each one.
@@ -97,6 +109,9 @@ Search the code for `PLACEHOLDER:` to find each one.
 | "How payouts work" copy | `pages/HowItWorks.tsx` | Final approved copy for custody, withdrawals, resolution |
 | Notify me toast | `pages/Channel.tsx` | Notification service (push or email) |
 | Wallet balance | `lib/store.tsx` | Balance from chain or custodial ledger |
+| Cross-tab question sync (BroadcastChannel) | `lib/store.tsx` `sync` | Realtime channel (WebSocket / SSE) for creator actions |
+| Companion quick questions, devices | `data/companion.ts` | Saved questions API, companion sessions from the auth service |
+| Companion owner check | `pages/companion/Companion.tsx` | Auth scoped to the channel (owner, later mods) |
 
 ## Structure
 
@@ -131,7 +146,9 @@ src/
 
 Viewer: `/`, `/browse`, `/how-it-works`, `/tx/:hash` (explorer preview), `/category/:slug`, `/markets`, `/:handle` (channel + predict + chat), `/following`, `/wallet`, `/notifications`, `/messages`, `/settings`, `/search`, `/support`, `/history`, `/legal/:doc`, `/login`, `/signup`.
 
-Creator Studio (`/studio`): live dashboard, stream setup, predictions, propose result (`/studio/predictions/:id/result`), past streams, clips, analytics, activity feed, alerts, channel points, raids, hype trains, subscriptions, followers, moderators, bans, AutoMod, chat commands, chat triggers, emotes, badges, earnings & payouts, sponsorships, channel settings, messages, support.
+Companion: `/control/:handle`.
+
+Creator Studio (`/studio`): live dashboard, stream setup, predictions, companion app, propose result (`/studio/predictions/:id/result`), past streams, clips, analytics, activity feed, alerts, channel points, raids, hype trains, subscriptions, followers, moderators, bans, AutoMod, chat commands, chat triggers, emotes, badges, earnings & payouts, sponsorships, channel settings, messages, support.
 
 Admin (`/admin`): overview, all questions, question review/dispute decision (`/admin/markets/:id`), disputes, platform controls, referral programme, reports, sanctions, appeals, emote review, badge review, users, user detail, channels, reserved handles, categories, payouts, deposit & withdrawal issues, revenue splits, limits & fees, treasury & on-chain, support queue, audit log, stream health.
 

@@ -9,6 +9,7 @@ import { categoryBySlug, categories } from "@/data/categories";
 import { studioActivity, studioRedemptions } from "@/data/studio";
 import { chatLines, chatUsers } from "@/data/viewer";
 import { AskQuestion, NeedsResult, RunningQuestion } from "./Predictions";
+import { CompanionPromo } from "./Companion";
 import { LivePlayer } from "@/components/LivePlayer";
 import { LiveBadge, Stat } from "@/components/xp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,6 +110,7 @@ export default function StudioDashboard() {
           </div>
         </div>
         <div className="space-y-5">
+          <CompanionPromo />
           {awaiting.map((m) => <NeedsResult key={m.id} m={m} />)}
           {open && <RunningQuestion m={open} />}
           <ModChat />

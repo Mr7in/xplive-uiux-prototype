@@ -1,7 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import {
   Activity, Bell, BarChart3, Ban, Bot, CircleDollarSign, Clapperboard, Coins, Gauge, Handshake, Heart, LayoutDashboard, LifeBuoy, MessageSquare,
-  MessagesSquare, Award, Radio, Rocket, Scissors, Settings, Shield, Smile, Sparkles, Star, Trophy, Users, Zap, Terminal,
+  MessagesSquare, Award, Smartphone, Radio, Rocket, Scissors, Settings, Shield, Smile, Sparkles, Star, Trophy, Users, Zap, Terminal,
 } from "lucide-react";
 import { ConsoleLayout, type NavGroup } from "./ConsoleLayout";
 import { useStore } from "@/lib/store";
@@ -20,6 +20,7 @@ function useGroups(needsResult: number, open: number): NavGroup[] {
       items: [
         { to: "/studio/stream", label: "Stream setup", icon: Radio },
         { to: "/studio/predictions", label: "Predictions", icon: Trophy, badge: needsResult ? <span className="rounded bg-warn/15 px-1.5 font-mono text-[11px] text-warn">{needsResult}</span> : open ? <span className="h-2 w-2 rounded-full bg-lime" /> : undefined },
+        { to: "/studio/companion", label: "Companion app", icon: Smartphone },
       ],
     },
     { label: "Content", items: [{ to: "/studio/content", label: "Past streams", icon: Clapperboard }, { to: "/studio/clips", label: "Clips", icon: Scissors }] },
