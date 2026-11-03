@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          VITE_PUBLIC_BASE: /xplive-uiux-prototype/
+          VITE_PUBLIC_BASE: /
       - uses: actions/configure-pages@v5
         with:
           enablement: true
