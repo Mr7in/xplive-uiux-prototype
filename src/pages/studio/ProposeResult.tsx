@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Check, CheckCircle2, CircleSlash, Clock4, ShieldAlert } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Check, CheckCircle2, CircleSlash, Film, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { usePageMeta } from "@/lib/meta";
 import { useStore } from "@/lib/store";
@@ -8,14 +8,13 @@ import { pool, type Side } from "@/data/markets";
 import { MarketStatus, PageHeader } from "@/components/xp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { clipPlan, durLabel } from "@/lib/autoclip";
+import { ClipLine, EvidenceClipDialog } from "@/components/EvidenceClip";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn, fmt, fmtUSDC } from "@/lib/utils";
 
 type Choice = Side | "VOID" | null;
 const VOID_REASONS = ["The event didn’t happen", "Stream cut out", "The question was unclear", "I made a mistake asking it"];
-const EVIDENCE = ["On screen at the moment it happened", "Clip saved", "Game result screen shown"];
 
 export default function ProposeResult() {
   const { id } = useParams();
@@ -23,19 +22,17 @@ export default function ProposeResult() {
   const { markets, proposeResult, user } = useStore();
   const m = markets.find((x) => x.id === id && x.handle === user?.channel);
   usePageMeta("Propose the result · Studio");
-  const nav = useNavigate();
   const [choice, setChoice] = React.useState<Choice>(params.get("void") ? "VOID" : null);
   const [reason, setReason] = React.useState<string | null>(null);
-  const [evidence, setEvidence] = React.useState<string | null>(null);
-  const [stamp, setStamp] = React.useState("");
   const [confirm, setConfirm] = React.useState(false);
+  const [clipping, setClipping] = React.useState<Side | null>(null);
 
   if (!m) return <div className="mx-auto max-w-2xl py-16 text-center"><p className="font-display text-2xl font-bold">Question not found</p><Button asChild variant="secondary" className="mt-4"><Link to="/studio/predictions">Back to predictions</Link></Button></div>;
 
   const done = m.status === "settled" || m.status === "voided";
   const winners = choice === "YES" || choice === "NO" ? Math.round(m.predictors * ((choice === "YES" ? m.yesPool : m.noPool) / Math.max(1, pool(m)))) : m.predictors;
-  const ready = choice === "VOID" ? !!reason : !!choice && !!evidence;
-  const note = choice === "VOID" ? reason ?? "" : [evidence, stamp && `at ${stamp}`].filter(Boolean).join(" ");
+  const ready = choice === "VOID" ? !!reason : !!choice;
+  const plan = clipPlan(m);
 
   const Big = ({ v, title, sub, cls }: { v: Choice; title: string; sub: string; cls: string }) => (
     <button
@@ -69,6 +66,7 @@ export default function ProposeResult() {
         <Card className="border-neon/30"><CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           {m.status === "settled" ? <CheckCircle2 className="h-10 w-10 text-neon" /> : <CircleSlash className="h-10 w-10 text-label" />}
           <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
+          {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
           <p className="text-muted-foreground">Viewers have been notified. The result shows in chat and on your channel.</p>
           <Button asChild><Link to="/studio/predictions">Ask the next question</Link></Button>
         </CardContent></Card>
@@ -86,16 +84,14 @@ export default function ProposeResult() {
           </section>
 
           {choice && choice !== "VOID" && (
-            <section aria-labelledby="ev" className="space-y-3">
-              <h2 id="ev" className="font-display text-lg font-bold">2. How can viewers check it?</h2>
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="ev">
-                {EVIDENCE.map((e) => (
-                  <button key={e} type="button" role="radio" aria-checked={evidence === e} onClick={() => setEvidence(e)} className={cn("h-11 rounded-full border px-4 text-sm transition", evidence === e ? "border-neon bg-lime font-semibold text-lime-ink" : "hover:border-input")}>{e}</button>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="grid gap-1.5"><Label htmlFor="ts">Stream time <span className="font-normal text-muted-foreground">(optional)</span></Label><Input id="ts" value={stamp} onChange={(e) => setStamp(e.target.value)} placeholder="1:09:12" className="w-36 font-mono" /></div>
-                <Button type="button" variant="secondary" onClick={() => setStamp("1:12:44")}><Clock4 /> Use current time</Button>
+            <section aria-labelledby="ev" className="space-y-2">
+              <h2 id="ev" className="font-display text-lg font-bold">2. Evidence</h2>
+              <div className="flex items-start gap-3 rounded-2xl border bg-card p-4 text-sm">
+                <Film className="mt-0.5 h-5 w-5 shrink-0 text-neon" />
+                <div>
+                  <p className="font-semibold">Clipped for you when you settle</p>
+                  <p className="mt-0.5 text-label">This question was open for {durLabel(plan.durationSec)}, so xp.live scans the stream from when it opened, finds the moment and attaches a {durLabel(plan.clipSec)} clip. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
+                </div>
               </div>
             </section>
           )}
@@ -131,16 +127,27 @@ export default function ProposeResult() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{choice === "VOID" ? "Void and refund everyone?" : `Settle as ${choice}?`}</DialogTitle>
-            <DialogDescription>You can’t undo this. {choice === "VOID" ? "All predictions are returned." : "Winners are paid now. If viewers dispute, an admin reviews the recording."}</DialogDescription>
+            <DialogDescription>You can’t undo this. {choice === "VOID" ? "All predictions are returned." : "We create the evidence clip first, then winners are paid. If viewers dispute, an admin reviews the clip and the recording."}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setConfirm(false)}>Go back</Button>
-            <Button variant={choice === "YES" ? "yes" : choice === "NO" ? "no" : "default"} onClick={() => { proposeResult(m.id, choice as Side | "VOID", note); setConfirm(false); toast.success(choice === "VOID" ? "Voided. Everyone refunded." : `Settled as ${choice}`); nav(`/studio/predictions/${m.id}/result`); }}>
+            <Button variant={choice === "YES" ? "yes" : choice === "NO" ? "no" : "default"} onClick={() => {
+              setConfirm(false);
+              if (choice === "VOID") { proposeResult(m.id, "VOID", reason ?? ""); toast.success("Voided. Everyone refunded."); return; }
+              setClipping(choice as Side);
+            }}>
               Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EvidenceClipDialog
+        m={clipping ? m : null}
+        result={clipping}
+        onCancel={() => { setClipping(null); toast("Not settled", { description: "The question is still waiting for your result." }); }}
+        onDone={(clip) => { proposeResult(m.id, clipping!, `Auto-clip of the moment (${durLabel(clip.sec)})`, clip); setClipping(null); toast.success(`Settled as ${clipping}`, { description: "Evidence clip attached." }); }}
+      />
     </div>
   );
 }

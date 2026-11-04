@@ -1,6 +1,19 @@
 export type MarketStatus = "open" | "awaiting" | "settled" | "voided";
 export type Side = "YES" | "NO";
 
+/** Auto-clipped evidence attached to a result. Stream times are h:mm:ss on that channel's broadcast. */
+export interface EvidenceClip {
+  /** Stream time of the detected moment. */
+  moment: string;
+  start: string;
+  end: string;
+  /** Clip length in seconds. */
+  sec: number;
+  /** Stream time range the clipper scanned (question opened → creator's tap). */
+  scannedFrom: string;
+  scannedTo: string;
+}
+
 export interface Market {
   id: string;
   handle: string; // streamer handle
@@ -29,6 +42,12 @@ export interface Market {
   closedAt?: number;
   settledAt?: number;
   paidAt?: number;
+  /** How long the question was opened for, in seconds (incl. extensions). Drives the auto-clip window. */
+  durationSec?: number;
+  /** Epoch ms when the question opened (demo-created questions). */
+  openedAt?: number;
+  /** Evidence clip cut automatically around the moment when the creator settled. PLACEHOLDER: auto-clipper service. */
+  clip?: EvidenceClip;
   /** Mock only: how an open question resolves if it closes during the demo, so the whole loop can be tested. */
   script?: { outcome: Side; evidence: string; clipAt: string };
   dispute?: { by: string; side: Side; stake: number; // USDC

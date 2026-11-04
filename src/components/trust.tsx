@@ -11,6 +11,7 @@ import { multiplier, type Market, type Side } from "@/data/markets";
 import { streamerByHandle } from "@/data/streamers";
 import { NETWORK, short } from "@/lib/chain";
 import { at, clock, closedAt, disputeLine, paidAt, settledAt, trackRecord, when, winners, sideCounts } from "@/lib/ledger";
+import { durLabel } from "@/lib/autoclip";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StreamThumb } from "@/components/xp";
@@ -147,22 +148,25 @@ export function SideText({ side }: { side: Side }) {
 
 /* ───────────────────────── Evidence frame ───────────────────────── */
 
-/** PLACEHOLDER: evidence clip captured from the stream by the creator's resolution flow. */
+/** PLACEHOLDER: evidence clip from the auto-clipper (new results) or a frame (seed results). Production: play the clip from the media CDN. */
 export function EvidenceButton({ m }: { m: Market }) {
   const [open, setOpen] = React.useState(false);
   const s = streamerByHandle(m.handle);
   if (!m.clipAt || !s) return null;
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1 text-label underline underline-offset-2 hover:text-foreground"><Play className="h-3 w-3" />View frame at {m.clipAt}</button>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1 text-label underline underline-offset-2 hover:text-foreground"><Play className="h-3 w-3" />{m.clip ? `Watch ${durLabel(m.clip.sec)} clip at ${m.clipAt}` : `View frame at ${m.clipAt}`}</button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Evidence · {m.question}</DialogTitle>
-            <DialogDescription>{m.evidence}. Captured from {s.name}’s stream at stream time {m.clipAt} and attached to the result.</DialogDescription>
+            <DialogDescription>{m.clip
+              ? <>Clipped automatically by xp.live from {s.name}’s stream when the result was posted: {durLabel(m.clip.sec)}, {m.clip.start} to {m.clip.end}, moment at {m.clip.moment}. The clipper scanned {m.clip.scannedFrom} to {m.clip.scannedTo}.</>
+              : <>{m.evidence}. Captured from {s.name}’s stream at stream time {m.clipAt} and attached to the result.</>}</DialogDescription>
           </DialogHeader>
           <StreamThumb s={{ ...s, live: true }} frame={3} className="rounded-lg">
-            <span className="absolute bottom-2 left-2 rounded bg-black/80 px-2 py-0.5 font-mono text-xs text-white">{m.clipAt}</span>
+            <span className="absolute bottom-2 left-2 rounded bg-black/80 px-2 py-0.5 font-mono text-xs text-white">{m.clip ? `${m.clip.start} – ${m.clip.end}` : m.clipAt}</span>
+            {m.clip && <span className="absolute inset-0 grid place-items-center"><span className="grid h-12 w-12 place-items-center rounded-full bg-black/70 text-white"><Play className="h-5 w-5" /></span></span>}
           </StreamThumb>
         </DialogContent>
       </Dialog>

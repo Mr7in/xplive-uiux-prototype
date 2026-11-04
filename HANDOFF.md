@@ -83,11 +83,30 @@ What changed, mapped to the brief:
 Second-screen controls for the streamer who asked the question, so they can run it from a phone, tablet or second monitor while the game is full screen.
 
 - **Link per channel:** `/control/:handle` (hosted: `ui.xplive.site/#/control/nordic-slots-god`). Only the channel owner's credentials unlock it; any other account gets "This account doesn't own <channel>". Production: `xp.live/control/<handle>` with BrowserRouter.
-- **Screens** (`pages/companion/Companion.tsx`): login, Ask (saved quick questions, write a new one, 1/2/5/10 min), Live (big countdown, pools, +30s / +1m / +5m, hold to close, void), Results (big YES / NO hold buttons with pool and viewer counts, evidence stream time captured at close with "Mark now", evidence type, void with reason, auto-void countdown), Recent results, lock screen.
+- **Screens** (`pages/companion/Companion.tsx`): login, Ask (saved quick questions, write a new one, 1/2/5/10 min), Live (big countdown, pools, +30s / +1m / +5m, hold to close, void), Results (big YES / NO hold buttons with pool and viewer counts, auto-clipped evidence, void with reason, auto-void countdown), Recent results, lock screen.
 - **Safety:** settle, void and close need a press and hold (Short / Normal / Long, per device). When a question closes the phone vibrates and jumps to Results. Screen Wake Lock keeps the screen on. Desktop hotkeys: hold Y / N to settle the oldest question, C to close.
 - **Phone:** tabs Ask/Live, Results, Recent. **Tablet / monitor (768 px and up):** Live and Results side by side.
 - **Studio > Companion app** (`pages/studio/Companion.tsx`): link with copy and QR, logged-in devices with log out, quick question editor (feeds the companion), "Built for mid-game" notes. A promo strip links to it from the Live dashboard and Predictions.
 - **Sync:** question actions (create, close, extend, settle, void, saved questions) go through `sync()` in `lib/store.tsx` and are mirrored to every open tab with `BroadcastChannel`, so Studio in one window and the companion in another stay in step. Swap for the realtime API.
+
+## Auto-clipped evidence
+
+The creator only says whether it happened. xp.live makes the evidence clip itself.
+
+- **Flow:** hold YES or NO (companion Results, or Studio › Propose result → Confirm) → modal *"Please wait while the evidence clip is created"* (`components/EvidenceClip.tsx`): stream preview with scan line, progress bar with seconds left, steps *Scanning the stream (opened → tap) > Found the moment > Cutting the clip > Attaching it to your result*. When it's ready the result posts with the clip attached. *Stop, don't settle yet* (or X / Esc) cancels and leaves the question waiting; nothing is settled. Void never waits for a clip.
+- **Tied to the question length** (`lib/autoclip.ts`, `clipPlan`). Extensions (+30s / +1m / +5m) count towards the length.
+
+  | Open for | Clip | Wait (demo) |
+  |---|---|---|
+  | up to 1 min | 30 s | ~6 s |
+  | up to 2 min | 45 s | ~9 s |
+  | up to 5 min | 90 s | ~14 s |
+  | up to 10 min | 2 min | ~20 s |
+  | longer | 3 min | ~28 s |
+
+- **Data:** `Market.durationSec`, `Market.openedAt`, `Market.clip` (`moment`, `start`, `end`, `sec`, `scannedFrom`, `scannedTo`). `proposeResult(id, result, note, clip)` stores the clip and sets `clipAt` to the moment; it syncs to other tabs like every other question action.
+- **Viewers:** the resolution block shows *Watch 45 s clip at 1:10:38*; the evidence dialog says it was clipped automatically and shows the range. Demo auto-resolved questions get clips too. Older seed results keep their single frame.
+- Manual evidence type and "Mark now" are gone from the companion and Studio.
 
 ## Placeholder register
 
@@ -111,6 +130,7 @@ Search the code for `PLACEHOLDER:` to find each one.
 | Wallet balance | `lib/store.tsx` | Balance from chain or custodial ledger |
 | Cross-tab question sync (BroadcastChannel) | `lib/store.tsx` `sync` | Realtime channel (WebSocket / SSE) for creator actions |
 | Companion quick questions, devices | `data/companion.ts` | Saved questions API, companion sessions from the auth service |
+| Auto-clipper (scan, moment detection, clip render, wait times) | `lib/autoclip.ts`, `components/EvidenceClip.tsx` | Clip service on the stream DVR/VOD: progress events, detected moment, clip URL on the media CDN; failure/retry state still to design |
 | Companion owner check | `pages/companion/Companion.tsx` | Auth scoped to the channel (owner, later mods) |
 
 ## Structure

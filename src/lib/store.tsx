@@ -1,5 +1,6 @@
 import * as React from "react";
-import { markets as seedMarkets, type Market, type Side, multiplier } from "@/data/markets";
+import { buildClip } from "@/lib/autoclip";
+import { markets as seedMarkets, type Market, type Side, type EvidenceClip, multiplier } from "@/data/markets";
 import { depositAddressFor, mockHex } from "@/lib/chain";
 import { seedPresets, type Preset } from "@/data/companion";
 
@@ -158,7 +159,7 @@ type SyncMsg =
   | { a: "create"; m: Market }
   | { a: "close"; id: string; at: number }
   | { a: "extend"; id: string; sec: number }
-  | { a: "propose"; id: string; result: Side | "VOID"; note: string; at: number }
+  | { a: "propose"; id: string; result: Side | "VOID"; note: string; at: number; clip?: EvidenceClip }
   | { a: "presets"; handle: string; list: Preset[] };
 
 function reduceSync(s: State, msg: SyncMsg): State {
@@ -168,14 +169,14 @@ function reduceSync(s: State, msg: SyncMsg): State {
     case "close":
       return { ...s, markets: s.markets.map((m) => (m.id === msg.id && m.status === "open" ? { ...m, status: "awaiting", secondsLeft: 0, closedMinsAgo: 0, closedAt: msg.at } : m)) };
     case "extend":
-      return { ...s, markets: s.markets.map((m) => (m.id === msg.id && m.status === "open" ? { ...m, secondsLeft: (m.secondsLeft ?? 0) + msg.sec } : m)) };
+      return { ...s, markets: s.markets.map((m) => (m.id === msg.id && m.status === "open" ? { ...m, secondsLeft: (m.secondsLeft ?? 0) + msg.sec, durationSec: (m.durationSec ?? m.secondsLeft ?? 0) + msg.sec } : m)) };
     case "presets":
       return { ...s, presets: { ...s.presets, [msg.handle]: msg.list } };
     case "propose": {
-      const { id, result, note, at } = msg;
+      const { id, result, note, at, clip } = msg;
       if (!s.markets.some((m) => m.id === id && m.status === "awaiting")) return s;
       const markets = s.markets.map((m) =>
-        m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator.", settledAt: at } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: at, paidMinsAgo: 0, paidAt: at + 120_000, evidence: note }
+        m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator.", settledAt: at } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: at, paidMinsAgo: 0, paidAt: at + 120_000, evidence: note, ...(clip ? { clip, clipAt: clip.moment } : {}) }
       );
       const target = markets.find((m) => m.id === id)!;
       let credit = 0;
@@ -200,7 +201,7 @@ interface Store extends State {
   savePresets: (handle: string, list: Preset[]) => void;
   closeMarket: (marketId: string) => void;
   extendMarket: (marketId: string, seconds: number) => void;
-  proposeResult: (marketId: string, result: Side | "VOID", note: string) => void;
+  proposeResult: (marketId: string, result: Side | "VOID", note: string, clip?: EvidenceClip) => void;
   adminDecide: (marketId: string, decision: Side | "VOID", note: string) => void;
   connectWallet: (provider: WalletProvider) => Promise<ConnectedWallet>;
   disconnectWallet: () => void;
@@ -278,7 +279,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         let transfers = s.transfers;
         markets = markets.map((m) => {
           if (m.status === "awaiting" && m.closedAt && m.script && now - m.closedAt > 40_000 && s.user?.channel !== m.handle)
-            return { ...m, status: "settled" as const, outcome: m.script.outcome, evidence: m.script.evidence, clipAt: m.script.clipAt, settledMinsAgo: 0, settledAt: now };
+          {
+            // The creator only says YES/NO; the auto-clipper attaches the evidence clip (see lib/autoclip.ts).
+            const clip = buildClip(m, now);
+            return { ...m, status: "settled" as const, outcome: m.script.outcome, evidence: m.script.evidence, clip, clipAt: clip.moment, settledMinsAgo: 0, settledAt: now };
+          }
           if (m.status === "settled" && m.settledAt && !m.paidAt && now - m.settledAt > 5_000) {
             const wins = s.positions.filter((p) => p.marketId === m.id && p.tx === "confirmed" && p.side === m.outcome);
             for (const p of wins) {
@@ -366,14 +371,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           transfers: [{ id: `tip${Date.now()}`, kind: "tip", label: `Tip to ${handle}`, amount: -amount, state: "confirmed", txHash: mockHex("tip" + Date.now()), at: Date.now() }, ...s.transfers],
         })),
       createMarket: (handle, question, rule, seconds) => {
-        const m: Market = { id: `m-${Date.now()}`, handle, question, rule, status: "open", yesPool: 0, noPool: 0, predictors: 0, secondsLeft: seconds };
+        const m: Market = { id: `m-${Date.now()}`, handle, question, rule, status: "open", yesPool: 0, noPool: 0, predictors: 0, secondsLeft: seconds, durationSec: seconds, openedAt: Date.now() };
         sync({ a: "create", m });
         return m;
       },
       savePresets: (handle, list) => sync({ a: "presets", handle, list }),
       closeMarket: (id) => sync({ a: "close", id, at: Date.now() }),
       extendMarket: (id, sec) => sync({ a: "extend", id, sec }),
-      proposeResult: (id, result, note) => sync({ a: "propose", id, result, note, at: Date.now() }),
+      proposeResult: (id, result, note, clip) => sync({ a: "propose", id, result, note, at: Date.now(), clip }),
       adminDecide: (id, decision, note) =>
         setState((s) => ({
           ...s,

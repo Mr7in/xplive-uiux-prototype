@@ -1,12 +1,14 @@
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Check, ChevronDown, Clock, Eye, EyeOff, Hourglass, Keyboard, Lock, LogOut, Menu, MonitorSmartphone, Pencil, Plus, Smartphone, Sun, TimerReset, Unlock, Vibrate, XCircle } from "lucide-react";
+import { Check, Eye, Film, EyeOff, Hourglass, Keyboard, Lock, LogOut, Menu, MonitorSmartphone, Pencil, Plus, Smartphone, Sun, TimerReset, Unlock, Vibrate, XCircle } from "lucide-react";
 import { usePageMeta } from "@/lib/meta";
 import { accounts, useStore } from "@/lib/store";
 import { streamerByHandle, type Streamer } from "@/data/streamers";
-import { pool, yesPct, type Market, type Side } from "@/data/markets";
-import { DURATIONS, EVIDENCE, VOID_REASONS, genericPresets, type Preset } from "@/data/companion";
+import { pool, yesPct, type EvidenceClip, type Market, type Side } from "@/data/markets";
+import { DURATIONS, VOID_REASONS, genericPresets, type Preset } from "@/data/companion";
+import { clipPlan, durLabel } from "@/lib/autoclip";
+import { ClipLine, EvidenceClipDialog } from "@/components/EvidenceClip";
 import { LOAD, closedAt, sideCounts, paidOut, ago } from "@/lib/ledger";
 import { ChannelAvatar, LiveBadge, SplitBar } from "@/components/xp";
 import { LogoMark } from "@/components/brand/Logo";
@@ -276,23 +278,27 @@ function AskPanel({ s, blocked }: { s: Streamer; blocked: boolean }) {
   );
 }
 
-function SettleCard({ m, s, preVoid, onDone }: { m: Market; s: Streamer; preVoid: boolean; onDone: (id: string) => void }) {
+function SettleCard({ m, s, preVoid, busy, onBusy, onDone }: { m: Market; s: Streamer; preVoid: boolean; busy: boolean; onBusy: (v: boolean) => void; onDone: (id: string) => void }) {
   const { proposeResult } = useStore();
   const now = useNow();
   const closed = closedAt(m);
-  const [stamp, setStamp] = React.useState(() => hms((closed - streamStart(s)) / 1000));
-  const [evidence, setEvidence] = React.useState(EVIDENCE[0]);
-  const [showEv, setShowEv] = React.useState(false);
   const [voiding, setVoiding] = React.useState(preVoid);
   const [reason, setReason] = React.useState<string | null>(null);
+  const [clipping, setClipping] = React.useState<Side | null>(null);
   React.useEffect(() => { if (preVoid) setVoiding(true); }, [preVoid]);
   const counts = sideCounts(m);
   const left = AUTO_VOID_MS - (now - closed);
-  const settle = (r: Side | "VOID") => {
-    const note = r === "VOID" ? reason ?? "" : `${evidence} at ${stamp}`;
-    proposeResult(m.id, r, note);
+  const plan = clipPlan(m);
+  // YES / NO: the creator only says what happened. The auto-clipper makes the evidence, then the result posts.
+  const pick = (r: Side) => { setClipping(r); onBusy(true); };
+  const cancelClip = () => { setClipping(null); onBusy(false); toast("Not settled", { description: "The question is still waiting for your result." }); };
+  const clipDone = (clip: EvidenceClip) => {
+    const r = clipping!;
+    proposeResult(m.id, r, `Auto-clip of the moment (${durLabel(clip.sec)})`, clip);
+    setClipping(null); onBusy(false);
     onDone(m.id);
   };
+  const voidIt = () => { proposeResult(m.id, "VOID", reason ?? ""); onDone(m.id); };
   return (
     <section aria-label={`Settle: ${m.question}`} className="flex flex-col gap-4 rounded-3xl border-2 border-warn/60 bg-warn-bg p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -306,33 +312,22 @@ function SettleCard({ m, s, preVoid, onDone }: { m: Market; s: Streamer; preVoid
 
       {!voiding ? (
         <>
+          <p className="text-sm font-semibold">Did it happen?</p>
           <div className="grid grid-cols-2 gap-3">
-            <HoldButton label="Settle as YES" hotkey="y" onConfirm={() => settle("YES")} className="min-h-[128px] rounded-2xl bg-yes-fill text-yes-ink">
+            <HoldButton label="It happened: settle as YES" hotkey="y" disabled={busy} onConfirm={() => pick("YES")} className="min-h-[128px] rounded-2xl bg-yes-fill text-yes-ink">
               <span className="font-display text-4xl font-black">YES</span>
               <span className="mt-1 text-sm opacity-80">{fmtUSDC(m.yesPool)} · {fmt(counts.YES)} viewers</span>
               <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold opacity-80">Hold <Kbd k="Y" /></span>
             </HoldButton>
-            <HoldButton label="Settle as NO" hotkey="n" onConfirm={() => settle("NO")} className="min-h-[128px] rounded-2xl bg-no-fill text-no-ink">
+            <HoldButton label="It didn't happen: settle as NO" hotkey="n" disabled={busy} onConfirm={() => pick("NO")} className="min-h-[128px] rounded-2xl bg-no-fill text-no-ink">
               <span className="font-display text-4xl font-black">NO</span>
               <span className="mt-1 text-sm opacity-80">{fmtUSDC(m.noPool)} · {fmt(counts.NO)} viewers</span>
               <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold opacity-80">Hold <Kbd k="N" /></span>
             </HoldButton>
           </div>
-          <div className="rounded-2xl border bg-card px-4 py-3 text-sm">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-label">Evidence at</span>
-              <span className="font-mono font-bold">{stamp}</span>
-              <button type="button" className="ml-auto h-9 rounded-lg border px-3 text-xs font-semibold hover:border-input" onClick={() => setStamp(hms((Date.now() - streamStart(s)) / 1000))}>Mark now</button>
-            </div>
-            <button type="button" onClick={() => setShowEv((v) => !v)} className="mt-2 flex w-full items-center justify-between text-left text-label" aria-expanded={showEv}>
-              <span className="truncate">{evidence}</span><ChevronDown className={cn("h-4 w-4 shrink-0 transition", showEv && "rotate-180")} />
-            </button>
-            {showEv && (
-              <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="How viewers can check it">
-                {EVIDENCE.map((e) => <button key={e} type="button" role="radio" aria-checked={evidence === e} onClick={() => { setEvidence(e); setShowEv(false); }} className={cn("h-10 rounded-full border px-3 text-xs transition", evidence === e ? "border-foreground bg-secondary font-semibold" : "hover:border-input")}>{e}</button>)}
-              </div>
-            )}
+          <div className="flex items-start gap-3 rounded-2xl border bg-card px-4 py-3 text-sm">
+            <Film className="mt-0.5 h-4 w-4 shrink-0 text-neon" />
+            <p className="text-label"><span className="font-semibold text-foreground">Evidence is made for you.</span> Open for {durLabel(plan.durationSec)}, so we cut a {durLabel(plan.clipSec)} clip around the moment. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
           </div>
           <button type="button" onClick={() => setVoiding(true)} className="h-12 rounded-xl border bg-card text-sm font-semibold text-label hover:text-foreground">Can’t decide fairly? Void and refund</button>
         </>
@@ -348,10 +343,11 @@ function SettleCard({ m, s, preVoid, onDone }: { m: Market; s: Streamer; preVoid
           </div>
           <div className="grid grid-cols-[auto_1fr] gap-2">
             <Button variant="secondary" className="h-16 rounded-2xl px-5" onClick={() => { setVoiding(false); setReason(null); }}>Back</Button>
-            <HoldButton label="Void and refund everyone" disabled={!reason} onConfirm={() => settle("VOID")} className="h-16 rounded-2xl bg-foreground text-lg font-bold text-background" fill="bg-background/25">Hold to void and refund</HoldButton>
+            <HoldButton label="Void and refund everyone" disabled={!reason || busy} onConfirm={voidIt} className="h-16 rounded-2xl bg-foreground text-lg font-bold text-background" fill="bg-background/25">Hold to void and refund</HoldButton>
           </div>
         </>
       )}
+      <EvidenceClipDialog m={clipping ? m : null} result={clipping} onCancel={cancelClip} onDone={clipDone} />
     </section>
   );
 }
@@ -361,7 +357,8 @@ function DoneCard({ m, onNext }: { m: Market; onNext: () => void }) {
     <section className="flex flex-col items-center gap-2 rounded-3xl border border-neon/30 bg-card p-6 text-center" aria-live="polite">
       <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-lime-ink"><Check className="h-6 w-6" strokeWidth={3} /></span>
       <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
-      <p className="text-sm text-label">{m.status === "settled" ? `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers. Shown in chat now. Viewers can dispute for 2 hours.` : `${fmtUSDC(pool(m))} back to ${fmt(m.predictors)} viewers.`}</p>
+      {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
+      <p className="text-sm text-label">{m.status === "settled" ? `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers. Shown in chat now with the evidence clip. Viewers can dispute for 2 hours.` : `${fmtUSDC(pool(m))} back to ${fmt(m.predictors)} viewers.`}</p>
       <Button className="mt-2 h-12 w-full rounded-xl" variant="secondary" onClick={onNext}>Done</Button>
     </section>
   );
@@ -400,6 +397,7 @@ function Console({ s }: { s: Streamer }) {
   const [tab, setTab] = React.useState<Tab>("live");
   const [preVoid, setPreVoid] = React.useState<string | null>(null);
   const [done, setDone] = React.useState<string[]>([]);
+  const [busy, setBusy] = React.useState(false);
   const now = useNow();
   usePageMeta(`Controls · ${s.name}`);
 
@@ -484,7 +482,7 @@ function Console({ s }: { s: Streamer }) {
           </div>
           <div className={cn("space-y-4 md:block", tab === "results" ? "block" : "hidden")}>
             {doneMarkets.map((m) => <DoneCard key={m.id} m={m} onNext={() => { setDone((d) => d.filter((x) => x !== m.id)); setTab("live"); }} />)}
-            {awaiting.map((m) => <SettleCard key={m.id} m={m} s={s} preVoid={preVoid === m.id} onDone={(id) => { setDone((d) => [id, ...d]); setPreVoid(null); }} />)}
+            {awaiting.map((m) => <SettleCard key={m.id} m={m} s={s} preVoid={preVoid === m.id} busy={busy} onBusy={setBusy} onDone={(id) => { setDone((d) => [id, ...d]); setPreVoid(null); }} />)}
             {!awaiting.length && !doneMarkets.length && (
               <section className="rounded-3xl border border-dashed p-6 text-center">
                 <p className="font-display text-lg font-bold">Nothing to settle</p>
