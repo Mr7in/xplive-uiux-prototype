@@ -329,7 +329,7 @@ export default function Channel() {
   const header = (
     <div className="flex flex-wrap items-start gap-4">
       <ChannelAvatar s={s} size={64} />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-[12rem] flex-1">
         <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold">{s.name} {s.verified && <Verified />}</h1>
         <p className="mt-0.5 font-medium text-label">{s.title}</p>
         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
