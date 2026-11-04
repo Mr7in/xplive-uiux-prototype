@@ -241,9 +241,9 @@ export default function SiteLayout() {
   return (
     <div className="min-h-screen bg-background">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-lime focus:px-3 focus:py-2 focus:text-lime-ink">Skip to content</a>
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b bg-background px-3 md:px-5">
+      <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b bg-background px-2 min-[360px]:gap-3 min-[360px]:px-3 md:px-5">
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setMenuOpen(true)}><Menu className="h-5 w-5" /></Button>
-        <Link to="/" aria-label="xp.live home" className="mr-2 shrink-0 pt-1"><Logo size={30} /></Link>
+        <Link to="/" aria-label="xp.live home" className="shrink-0 pt-1 min-[360px]:mr-2"><Logo size={30} /></Link>
         <nav aria-label="Main" className="hidden items-center gap-0.5 md:flex">
           <CategoriesMenu />
           {navLinks.map((l) => (
@@ -251,7 +251,7 @@ export default function SiteLayout() {
           ))}
         </nav>
         <SearchBox className="mx-auto hidden w-full max-w-md lg:block" />
-        <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
+        <div className="ml-auto flex items-center gap-1 min-[360px]:gap-1.5 lg:ml-0">
           <Button asChild variant="ghost" size="icon" className="lg:hidden" aria-label="Search"><Link to="/search"><Search className="h-5 w-5" /></Link></Button>
           {user ? (
             <>
@@ -266,8 +266,9 @@ export default function SiteLayout() {
           ) : (
             <>
               <ThemeToggle />
-              <Button variant="outline" size="sm" className="hidden border-foreground/50 text-foreground hover:border-foreground sm:inline-flex" onClick={() => auth.open("signin")}>Log in</Button>
-              <Button size="sm" onClick={() => auth.open("signup")}>Sign up</Button>
+              {/* Log in is visible at every width: on phones it was the only way back into an existing account from the header. */}
+              <Button variant="outline" size="sm" className="border-foreground/50 px-2.5 text-foreground hover:border-foreground sm:px-3" onClick={() => auth.open("signin")}>Log in</Button>
+              <Button size="sm" className="px-2.5 sm:px-3" onClick={() => auth.open("signup")}>Sign up</Button>
             </>
           )}
         </div>
