@@ -8,7 +8,7 @@ import { useStore } from "@/lib/store";
 import { useRequireAuth } from "@/components/auth";
 import { multiplier, pool, yesPct, type Market, type Side } from "@/data/markets";
 import { streamerByHandle } from "@/data/streamers";
-import { SplitBar } from "@/components/xp";
+import { OddsRing, SplitBar } from "@/components/xp";
 import { cn, fmt, fmtUSD2, fmtUSDC, timeLeft } from "@/lib/utils";
 import { NETWORK } from "@/lib/chain";
 import { useWalletUI } from "@/components/WalletDialogs";
@@ -79,11 +79,14 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
     });
 
   return (
-    <section aria-labelledby={`q-${m.id}`} className={cn("rounded-2xl border bg-card p-5", className)}>
+    <section aria-labelledby={`q-${m.id}`} className={cn("rounded-2xl border bg-popover p-4 md:p-6", className)}>
       <div className="flex items-start justify-between gap-3">
-        <h2 id={`q-${m.id}`} className="font-display text-xl font-bold leading-tight text-balance">{m.question}</h2>
+        <div className="flex min-w-0 items-center gap-3">
+          <OddsRing yes={p} size={56} />
+          <h2 id={`q-${m.id}`} className="font-display text-xl font-semibold leading-[26px] text-balance">{m.question}</h2>
+        </div>
         {open && (
-          <span role="timer" aria-live="off" aria-label={`Closes in ${timeLeft(secs)}`} className={cn("inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 font-mono text-sm font-bold tabular", urgent ? "bg-warn-bg text-warn" : "bg-secondary")}>
+          <span role="timer" aria-live="off" aria-label={`Closes in ${timeLeft(secs)}`} className={cn("inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[13px] font-bold tabular", urgent ? "border-foreground text-foreground" : "text-label")}>
             <Clock className="h-3.5 w-3.5" /> {timeLeft(secs)}
           </span>
         )}
@@ -91,11 +94,11 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
       <p className="mt-1.5 flex gap-1.5 text-xs text-muted-foreground"><Info className="mt-px h-3.5 w-3.5 shrink-0" />{m.rule}</p>
 
       <div className="mt-4">
-        <SplitBar m={m} />
-        <div className="mt-2 flex justify-between font-mono text-xs tabular">
-          <span className="text-yes">YES {p}% · {fmtUSD2(m.yesPool)}</span>
-          <span className="text-no">{fmtUSD2(m.noPool)} · {100 - p}% NO</span>
+        <div className="mb-1.5 flex justify-between font-mono text-[13px] leading-[18px] tabular">
+          <span className="text-yes">YES <b>{p}%</b> · {fmtUSD2(m.yesPool)}</span>
+          <span className="text-no">{fmtUSD2(m.noPool)} · NO <b>{100 - p}%</b></span>
         </div>
+        <SplitBar m={m} />
         <p className="mt-1 text-center text-xs text-muted-foreground">Pool {fmtUSDC(pool(m))} from {fmt(m.predictors)} predictors</p>
       </div>
 
@@ -108,9 +111,9 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
               const isYes = sd === "YES";
               return (
                 <button key={sd} role="radio" aria-checked={on} onClick={() => guard(() => setSide(sd))}
-                  className={cn("flex min-h-[60px] flex-col items-start justify-center rounded-xl border-2 px-4 text-left transition",
-                    isYes ? (on ? "border-yes-fill bg-yes-fill text-yes-ink" : "border-yes/25 bg-yes-tint text-yes hover:border-yes/60") : on ? "border-no-fill bg-no-fill text-no-ink" : "border-no/25 bg-no-tint text-no hover:border-no/60")}>
-                  <span className="font-display text-lg font-extrabold">{isYes ? "Yes" : "No"}</span>
+                  className={cn("flex min-h-[60px] flex-col items-start justify-center rounded-lg border px-4 text-left transition duration-150 ease-out",
+                    isYes ? (on ? "border-yes-fill bg-yes-tint text-yes ring-1 ring-inset ring-yes-fill" : "border-yes-fill text-yes hover:bg-yes-tint") : on ? "border-no-fill bg-no-tint text-no ring-1 ring-inset ring-no-fill" : "border-no-fill text-no hover:bg-no-tint")}>
+                  <span className="font-display text-lg font-bold">{isYes ? "Yes" : "No"}</span>
                   <span className="font-mono text-xs">pays {multiplier(m, sd).toFixed(2)}×</span>
                 </button>
               );
@@ -135,7 +138,7 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">USDC</span>
               </div>
 
-              <dl className="rounded-xl bg-secondary/60 px-3 py-2" aria-label="Ticket summary">
+              <dl className="rounded-xl border bg-surface-2 px-3 py-2" aria-label="Ticket summary">
                 <SummaryRow k="Your pick"><SideText side={side} /></SummaryRow>
                 <SummaryRow k="Stake">{fmtUSDC(amount)}</SummaryRow>
                 <SummaryRow k="Balance after"><span className={cn(tooMuch && "text-coral-soft")}>{fmtUSDC(balance - amount)}</span><span className="block font-sans text-[11px] text-muted-foreground">now {fmtUSD2(balance)}</span></SummaryRow>
@@ -146,11 +149,11 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
                 <SummaryRow k={<>If <SideText side={side === "YES" ? "NO" : "YES"} /> wins</>} strong>{""}</SummaryRow>
                 <SummaryRow k="You lose" indent>{fmtUSDC(amount)}</SummaryRow>
                 <p className="pb-1 pt-2 text-xs leading-relaxed text-muted-foreground">
-                  Estimate. Payout moves as others join and locks when the question closes in <span className={cn("font-mono tabular", urgent && "font-bold text-warn")}>{timeLeft(secs)}</span>.
+                  Estimate. Payout moves as others join and locks when the question closes in <span className={cn("font-mono tabular", urgent && "font-bold text-foreground")}>{timeLeft(secs)}</span>.
                 </p>
               </dl>
 
-              {tooMuch && <p className="flex items-center justify-between gap-2 rounded-lg bg-coral/10 px-3 py-2 text-sm text-coral-soft">That’s more than your balance. <Button size="sm" variant="outline" onClick={() => ui.open("add")}>Add funds</Button></p>}
+              {tooMuch && <p className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm text-foreground">That’s more than your balance. <Button size="sm" variant="outline" onClick={() => ui.open("add")}>Add funds</Button></p>}
               {amount > 0 && amount < 1 && <p className="text-sm text-coral-soft">The minimum is 1.00 USDC.</p>}
               <Button size="lg" onClick={place} disabled={tooMuch || amount < 1}>Confirm prediction · {fmtUSDC(amount)}</Button>
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -178,7 +181,7 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
 
       {/* ── Your position ─────────────────────────────────── */}
       {mine.length > 0 && (
-        <div className="mt-4 rounded-xl border border-neon/40 p-3 text-sm">
+        <div className="mt-4 rounded-xl bg-lime-soft p-3 text-sm">
           <p className="mb-2 font-semibold">Your position</p>
           <ul className="space-y-3">
             {mine.map((pos) => {

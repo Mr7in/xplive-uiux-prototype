@@ -1,31 +1,31 @@
-<!doctype html><html><head><style>
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* Link-preview image, balz.tv design system. Render at 1200x630. Fonts from @fontsource in node_modules. */
+@font-face{font-family:Outfit;src:url(../node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:"Space Mono";src:url(../node_modules/@fontsource/space-mono/files/space-mono-latin-700-normal.woff2) format("woff2");font-weight:700}
+@font-face{font-family:"Space Mono";src:url(../node_modules/@fontsource/space-mono/files/space-mono-latin-400-normal.woff2) format("woff2");font-weight:400}
 html,body{margin:0}
-.c{width:1200px;height:630px;background:#0e1019;color:#eef0fb;font-family:'DM Sans';position:relative;overflow:hidden;display:flex;padding:72px 80px;box-sizing:border-box;gap:56px;align-items:center}
-.c:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 18% 30%,rgba(200,255,0,.08),transparent 70%)}
-.l{flex:1;position:relative}
-.logo{display:flex;align-items:baseline}
-.xp{font-family:Outfit;font-weight:900;font-size:150px;letter-spacing:-10px;line-height:.9}
-.x{position:relative;display:inline-block}.x:after{content:"";position:absolute;left:6px;right:-6px;bottom:10px;height:11px;border-radius:6px;background:#c8ff00}
-.p{color:#c8ff00}
-.dl{font-family:Outfit;font-size:46px;color:#9ca2c0;margin-left:4px}.dl b{color:#c8ff00}
-.dot{width:16px;height:16px;border-radius:50%;background:#ff4d6d;margin-left:12px;transform:translateY(-62px)}
-h1{font-family:Outfit;font-weight:800;font-size:54px;line-height:1.05;margin:36px 0 0;letter-spacing:-1px}
-.sub{font-family:'Space Mono';font-size:18px;letter-spacing:4px;color:#9ca2c0;margin-top:22px;text-transform:uppercase}
-.card{width:400px;background:#161a28;border:2px solid rgba(200,255,0,.35);border-radius:28px;padding:30px;position:relative;box-sizing:border-box}
-.k{font-family:'Space Mono';font-weight:700;font-size:15px;color:#c8ff00;letter-spacing:2px}
-.q{font-family:Outfit;font-weight:700;font-size:32px;line-height:1.12;margin:14px 0 22px}
-.bar{display:flex;gap:4px;height:14px;border-radius:7px;overflow:hidden}.bar i{display:block}
-.m{display:flex;justify-content:space-between;font-family:'Space Mono';font-size:15px;margin-top:10px}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
-.btns div{border-radius:16px;padding:16px 18px;font-family:Outfit;font-weight:800;font-size:26px}
-.btns small{display:block;font-family:'Space Mono';font-weight:400;font-size:13px}
-.live{display:inline-flex;align-items:center;gap:8px;background:#ff4d6d;color:#fff;font-weight:700;font-size:14px;letter-spacing:1.5px;padding:5px 10px;border-radius:7px;margin-bottom:16px}
-.live:before{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
-</style></head><body><div class="c">
-<div class="l"><div class="logo"><div class="xp"><span class="x">x</span><span class="p">p</span></div><div class="dl"><b>.</b>live</div><div class="dot"></div></div>
-<h1>Watch live.<br>Call what happens next.</h1><div class="sub">Stream · Chat · Predict</div></div>
-<div class="card"><div class="live">LIVE</div><div class="k">PREDICT NOW · 01:42</div><div class="q">Will the red marble win heat 3?</div>
-<div class="bar"><i style="width:62%;background:#34edc5"></i><i style="width:38%;background:#a78bfa"></i></div>
-<div class="m"><span style="color:#34edc5">YES 62%</span><span style="color:#a78bfa">38% NO</span></div>
-<div class="btns"><div style="background:#34edc5;color:#04201a">Yes<small>pays 1.55×</small></div><div style="background:#a78bfa;color:#160b33">No<small>pays 2.53×</small></div></div></div>
-</div></body></html>
+.c{width:1200px;height:630px;background:#000;color:#fff;font-family:Outfit;display:flex;align-items:center;gap:64px;padding:0 80px;box-sizing:border-box}
+.l{flex:1}
+h1{font-weight:800;font-size:52px;line-height:56px;margin:48px 0 0;letter-spacing:-.5px}
+.sub{font-size:24px;line-height:32px;color:#B4B4B4;margin-top:20px}
+.card{width:420px;background:#111;border:1px solid #2A2A2A;border-radius:16px;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#949494}
+.live{display:inline-flex;align-items:center;gap:8px;background:#3A1018;color:#fff;font-weight:600;font-size:15px;padding:5px 12px;border-radius:999px}
+.live i{width:10px;height:10px;border-radius:50%;background:#FF4D6D;box-shadow:0 0 0 5px rgba(255,77,109,.25)}
+.mono{font-family:"Space Mono"}
+.body{display:flex;gap:16px;align-items:center}
+.q{font-size:24px;line-height:30px;font-weight:600;margin:0}
+.lab{display:flex;justify-content:space-between;font-family:"Space Mono";font-size:16px}
+.y{color:#C8FF00}.n{color:#FF4D6D}
+.track{display:flex;gap:3px;height:10px;margin-top:8px}.track b{border-radius:5px}
+.btns{display:flex;gap:12px}.btns span{flex:1;height:50px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-weight:600;font-size:18px}
+.foot{font-size:14px;color:#949494}
+</style></head><body><div class="c"><div class="l"><svg viewBox="40 -745 1788 765" height="120"><path transform="scale(1 -1)" d="M342 -10Q295 -10 255 9Q237 17 221 28V0H51V729H225V466Q239 476 256 483Q296 499 342 499Q413 499 467.0 466.5Q521 434 551.5 376.0Q582 318 582 244Q582 171 551.5 113.5Q521 56 467.0 23.0Q413 -10 342 -10ZM311 145Q339 145 360.5 158.0Q382 171 394.0 193.5Q406 216 406 245Q406 273 394.0 295.5Q382 318 360.0 331.0Q338 344 310.0 344.0Q282 344 260.5 331.0Q239 318 227.0 296.0Q215 274 215 245Q215 215 227.0 192.5Q239 170 261.0 157.5Q283 145 311 145Z" fill="#fff"/><path d="M981.8 -124.1 A180 180 0 0 1 689.5 -159.1" fill="none" stroke="#FF4D6D" stroke-width="140"/><path d="M689.5 -159.1 A180 180 0 0 1 981.8 -364.9" fill="none" stroke="#C8FF00" stroke-width="140"/><rect x="933" y="-499" width="165" height="499" fill="#fff"/><path transform="translate(1113 0) scale(1 -1)" d="M51 0V729H225V0Z" fill="#fff"/><path transform="translate(1349 0) scale(1 -1)" d="M22 0V104L223 347H39V489H469V385L268 142H463V0Z" fill="#fff"/></svg>
+<h1>Watch live.<br>Call what happens next.</h1>
+<p class="sub">Creators ask YES / NO on stream. You take a side. They settle it with clip evidence.</p></div>
+<div class="card"><div class="top"><span class="live"><i></i>Live</span><span class="mono">Closes in 01:42</span></div>
+<div class="body"><svg width="64" height="64" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="#FF4D6D" stroke-width="16"/><circle cx="50" cy="50" r="40" fill="none" stroke="#C8FF00" stroke-width="16" stroke-dasharray="155.8 251.3" transform="rotate(-90 50 50)"/></svg>
+<p class="q">Will the bonus hit before the 200th spin?</p></div>
+<div><div class="lab"><span class="y">YES <b>62%</b></span><span class="n">NO <b>38%</b></span></div><div class="track"><b style="width:62%;background:#C8FF00"></b><b style="width:38%;background:#FF4D6D"></b></div></div>
+<div class="btns"><span class="y" style="border:1px solid #C8FF00">Yes</span><span class="n" style="border:1px solid #FF4D6D">No</span></div>
+<p class="foot" style="margin:0">Settled by the creator with clip evidence · 18+</p></div></div></body></html>

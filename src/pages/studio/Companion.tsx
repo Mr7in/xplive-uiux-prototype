@@ -29,7 +29,7 @@ export function CompanionPromo({ className }: { className?: string }) {
   if (!user?.channel) return null;
   return (
     <div className={cn("flex flex-wrap items-center gap-3 rounded-2xl border bg-card px-4 py-3", className)}>
-      <Smartphone className="h-5 w-5 shrink-0 text-neon" />
+      <Smartphone className="h-5 w-5 shrink-0 text-label" />
       <p className="min-w-0 flex-1 text-sm"><b>Playing full screen?</b> <span className="text-label">Run your questions from your phone or a second monitor.</span></p>
       <div className="flex gap-2">
         <Button asChild size="sm" variant="secondary"><Link to="/studio/companion">Set up</Link></Button>
@@ -78,7 +78,7 @@ export default function StudioCompanion() {
           <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-start">
             <Qr value={url} />
             <div className="min-w-0 flex-1 space-y-3">
-              <p className="text-sm text-label">Scan with your phone’s camera, or open the link on any screen and log in with your xp.live email and password.</p>
+              <p className="text-sm text-label">Scan with your phone’s camera, or open the link on any screen and log in with your balz email and password.</p>
               <div className="flex gap-2">
                 <Input readOnly value={url} className="font-mono text-xs" aria-label="Companion link" onFocus={(e) => e.currentTarget.select()} />
                 <Button variant="secondary" size="icon" onClick={copy} aria-label="Copy link"><Copy /></Button>

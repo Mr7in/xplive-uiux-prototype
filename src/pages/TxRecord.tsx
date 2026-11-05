@@ -54,8 +54,8 @@ export default function TxRecord() {
           <Item k="Block"><span className="font-mono tabular">{confirmed ? blockAt(time).toLocaleString("en-US") : "–"}</span></Item>
           <Item k="Timestamp">{when(time)}{!when(time).includes(":") && ` ${clock(time)}`}</Item>
           <Item k="Method"><span className="font-mono">{method}</span></Item>
-          <Item k="From"><span className="font-mono">{short(from, 10, 8)}</span>{from === depositAddress && <span className="ml-2 text-xs text-muted-foreground">your xp.live wallet</span>}</Item>
-          <Item k="To"><span className="font-mono">{short(to, 10, 8)}</span>{to === POOL_CONTRACT && <span className="ml-2 text-xs text-muted-foreground">xp.live prediction pool</span>}{to === depositAddress && <span className="ml-2 text-xs text-muted-foreground">your xp.live wallet</span>}</Item>
+          <Item k="From"><span className="font-mono">{short(from, 10, 8)}</span>{from === depositAddress && <span className="ml-2 text-xs text-muted-foreground">your balz wallet</span>}</Item>
+          <Item k="To"><span className="font-mono">{short(to, 10, 8)}</span>{to === POOL_CONTRACT && <span className="ml-2 text-xs text-muted-foreground">balz prediction pool</span>}{to === depositAddress && <span className="ml-2 text-xs text-muted-foreground">your balz wallet</span>}</Item>
           <Item k="Token transfer"><span className="font-mono tabular">{fmtUSDC(Math.abs(t.amount))}</span> <span className="text-xs text-muted-foreground">USDC · {short(NETWORK.usdc)}</span></Item>
           <Item k="For">{t.label}</Item>
         </dl>

@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 import { reports, appeals, supportQueue, payoutQueue } from "@/data/admin";
 
 const Count = ({ n, tone = "neutral" }: { n: number; tone?: "warn" | "danger" | "neutral" }) =>
-  n ? <span className={`rounded px-1.5 font-mono text-[11px] ${tone === "danger" ? "bg-coral/15 text-coral-soft" : tone === "warn" ? "bg-warn/15 text-warn" : "bg-secondary text-label"}`}>{n}</span> : null;
+  n ? <span className={`rounded px-1.5 font-mono text-[11px] ${tone === "danger" ? "border border-border text-foreground" : tone === "warn" ? "bg-warn/15 text-warn" : "bg-secondary text-label"}`}>{n}</span> : null;
 
 export default function AdminLayout() {
   const { markets } = useStore();

@@ -16,7 +16,7 @@ export default function History() {
           const s = streamerByHandle(w.handle)!;
           return (
             <Link key={w.handle + w.when} to={`/${w.handle}`} className="group">
-              <StreamThumb s={{ ...s, live: true }} className="ring-1 ring-transparent group-hover:ring-neon/60"><Progress value={w.progress} className="absolute inset-x-0 bottom-0 h-1 rounded-none bg-black/50" indicatorClassName="bg-live" /></StreamThumb>
+              <StreamThumb s={{ ...s, live: true }} className="ring-1 ring-transparent group-hover:ring-foreground/40"><Progress value={w.progress} className="absolute inset-x-0 bottom-0 h-1 rounded-none bg-black/50" indicatorClassName="bg-foreground" /></StreamThumb>
               <p className="mt-2 font-semibold group-hover:underline">{w.what}</p>
               <p className="text-sm text-muted-foreground">{s.name} · {w.when}</p>
             </Link>

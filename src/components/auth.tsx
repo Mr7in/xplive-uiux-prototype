@@ -88,10 +88,10 @@ export function AuthForm({ initial = "signin", onDone }: { initial?: Mode; onDon
           <Checkbox className="mt-0.5" /> I’m 18 or older (required to predict or watch casino categories). I accept the Terms and Privacy Policy.
         </label>
       )}
-      {error && <p role="alert" className="rounded-lg bg-coral/10 px-3 py-2 text-sm text-coral-soft">{error}</p>}
+      {error && <p role="alert" className="rounded-lg border px-3 py-2 text-sm text-foreground">{error}</p>}
       <Button type="submit" size="lg" disabled={busy}>{busy ? "Checking…" : mode === "signin" ? "Log in" : "Create account"}</Button>
       <p className="text-center text-sm text-muted-foreground">
-        {mode === "signin" ? "New to xp.live? " : "Already have an account? "}
+        {mode === "signin" ? "New to balz? " : "Already have an account? "}
         <button type="button" className="font-semibold text-foreground underline underline-offset-2" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); }}>
           {mode === "signin" ? "Create an account" : "Log in"}
         </button>
@@ -107,7 +107,7 @@ export function SignInDialog() {
       <DialogContent className="max-w-md">
         <DialogHeader className="items-start">
           <LogoMark size={40} className="mb-2" />
-          <DialogTitle>{mode === "signup" ? "Join xp.live" : "Welcome back"}</DialogTitle>
+          <DialogTitle>{mode === "signup" ? "Join balz" : "Welcome back"}</DialogTitle>
           <DialogDescription>{mode === "signup" ? "Follow creators, chat and call what happens next." : "Log in to chat, follow creators and predict."}</DialogDescription>
         </DialogHeader>
         <AuthForm initial={mode ?? "signin"} onDone={close} />

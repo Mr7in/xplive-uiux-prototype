@@ -52,7 +52,7 @@ function QuestionLifecycle({ m }: { m: Market }) {
           </div>
         )}
         {step === 1 && (
-          <div className="rounded-xl border border-neon/40 p-3 text-sm">
+          <div className="rounded-xl bg-lime-soft p-3 text-sm">
             <p className="font-semibold">Your position <span className="font-normal text-muted-foreground">· example</span></p>
             <dl className="mt-2 space-y-1 font-mono tabular">
               <div className="flex justify-between"><dt className="font-sans text-label">Pick</dt><dd className="font-sans font-bold text-yes">YES</dd></div>
@@ -63,7 +63,7 @@ function QuestionLifecycle({ m }: { m: Market }) {
           </div>
         )}
         {step === 2 && (
-          <div className="rounded-xl border border-neon/40 p-3 text-sm">
+          <div className="rounded-xl bg-lime-soft p-3 text-sm">
             <p className="font-display text-lg font-bold">Result: <span className="text-yes">YES</span> · <span className="text-neon">{fmtUSDC(back)}</span> back to you</p>
             <p className="mt-1 text-label">Resolved by {s.name}, who asked the question, with the moment from the stream as evidence.</p>
             <p className="mt-2 text-xs text-muted-foreground">Example. Winnings land in your wallet within minutes; anyone can dispute for 2 hours.</p>

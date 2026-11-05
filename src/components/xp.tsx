@@ -14,12 +14,25 @@ import { CoverArt } from "@/components/brand/CoverArt";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/lib/store";
 
-export function LiveBadge({ className }: { className?: string }) {
+/** balz.tv LiveBadge: coral-soft pill, pulsing coral dot (1.6s), sentence case. Coral is only ever NO or live. */
+export function LiveBadge({ className, children = "Live" }: { className?: string; children?: React.ReactNode }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-md bg-live px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white", className)}>
-      <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
-      Live
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-coral-tint px-2.5 py-1 text-xs font-semibold leading-4 text-foreground", className)}>
+      <span className="h-2 w-2 animate-live-pulse rounded-full bg-live motion-reduce:animate-none" aria-hidden="true" />
+      {children}
     </span>
+  );
+}
+
+/** balz.tv OddsRing: the logo's ring, carrying live odds. YES lime from the top clockwise, NO coral; animates over 400ms. */
+export function OddsRing({ yes, size = 56, className }: { yes: number; size?: number; className?: string }) {
+  const y = Math.max(0, Math.min(100, yes));
+  const r = 40, c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={`YES ${y}%, NO ${100 - y}%`} className={cn("shrink-0", className)}>
+      <circle cx={50} cy={50} r={r} fill="none" stroke="rgb(var(--no))" strokeWidth={16} />
+      <circle cx={50} cy={50} r={r} fill="none" stroke="rgb(var(--yes))" strokeWidth={16} strokeDasharray={`${(c * y) / 100} ${c}`} transform="rotate(-90 50 50)" style={{ transition: "stroke-dasharray 400ms ease-out" }} />
+    </svg>
   );
 }
 
@@ -47,7 +60,7 @@ export function ChannelAvatar({ s, size = 40, ring = true, className }: { s: Pic
 }
 
 export function Verified() {
-  return <BadgeCheck className="inline h-3.5 w-3.5 text-violet" aria-label="Verified creator" />;
+  return <BadgeCheck className="inline h-3.5 w-3.5 text-label" aria-label="Verified creator" />;
 }
 
 /** Stream thumbnail: category art cropped per channel (swap for the live preview frame from the media service). */
@@ -97,7 +110,7 @@ export function StreamCard({ s, className }: { s: Streamer; className?: string }
         <Thumb s={s} className="ring-1 ring-transparent transition group-hover:ring-foreground/40">
           <span className="absolute left-2 top-2 flex gap-1.5">{s.live ? <LiveBadge /> : <Badge variant="muted">Offline</Badge>}</span>
           {s.live && (
-            <span className="absolute bottom-2 left-2 rounded-md bg-black/80 px-1.5 py-0.5 text-white">
+            <span className="absolute bottom-2 left-2 rounded-full bg-black/80 px-2 py-0.5 text-white">
               <ViewerCount n={s.viewers} />
             </span>
           )}
@@ -126,7 +139,7 @@ export function CategoryCard({ c, className }: { c: Category; className?: string
   const st = categoryStats(c.slug);
   return (
     <Link to={`/category/${c.slug}`} className={cn("group flex min-w-0 flex-col gap-2", className)}>
-      <span className="relative block aspect-[3/4] overflow-hidden rounded-xl bg-surface ring-1 ring-border transition group-hover:-translate-y-0.5 group-hover:ring-neon/60">
+      <span className="relative block aspect-[3/4] overflow-hidden rounded-xl bg-surface ring-1 ring-border transition group-hover:-translate-y-0.5 group-hover:ring-foreground/40">
         <BoxArt c={c} />
         {c.adult && <span className="absolute right-2 top-2 rounded bg-black/75 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">18+</span>}
       </span>
@@ -142,9 +155,9 @@ export function CategoryCard({ c, className }: { c: Category; className?: string
 export function SplitBar({ m, className, thin }: { m: Pick<Market, "yesPool" | "noPool">; className?: string; thin?: boolean }) {
   const p = yesPct(m);
   return (
-    <div className={cn("flex w-full gap-0.5 overflow-hidden rounded-full", thin ? "h-1.5" : "h-2.5", className)} role="img" aria-label={`${p}% YES, ${100 - p}% NO`}>
-      <span className="bg-yes-fill transition-all duration-500" style={{ width: `${p}%` }} />
-      <span className="bg-no-fill transition-all duration-500" style={{ width: `${100 - p}%` }} />
+    <div className={cn("flex w-full gap-[3px]", thin ? "h-1.5" : "h-2", className)} role="img" aria-label={`${p}% YES, ${100 - p}% NO`}>
+      <span className="rounded-[4px] bg-yes-fill transition-[width] [transition-duration:400ms] ease-out" style={{ width: `${p}%` }} />
+      <span className="rounded-[4px] bg-no-fill transition-[width] [transition-duration:400ms] ease-out" style={{ width: `${100 - p}%` }} />
     </div>
   );
 }
@@ -177,27 +190,32 @@ export function MarketCard({ m, className }: { m: Market; className?: string }) 
   return (
     <Link
       to={`/${m.handle}`}
-      className={cn("group flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 transition hover:border-input hover:bg-surface-2/60", className)}
+      className={cn("group flex min-w-0 flex-col gap-4 rounded-2xl border bg-card p-4 transition hover:border-input", className)}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
           <ChannelAvatar s={s} size={24} ring={false} />
           <span className="truncate text-sm text-label">{s.name}</span>
-          {s.live && m.status === "open" && <LiveBadge className="scale-90" />}
+          {s.live && m.status === "open" && <LiveBadge />}
         </span>
         <MarketStatus m={m} />
       </div>
-      <p className="line-clamp-2 min-h-[2.75rem] font-display text-[17px] font-semibold leading-snug group-hover:underline">{m.question}</p>
-      <SplitBar m={m} thin />
-      <div className="flex items-center justify-between font-mono text-xs tabular">
-        <span className="text-yes">YES {p}%</span>
-        <span className="text-muted-foreground">{compactUSDC(pool(m))} · {fmt(m.predictors)}</span>
-        <span className="text-no">{100 - p}% NO</span>
+      <div className="flex items-center gap-3">
+        <OddsRing yes={p} size={48} />
+        <p className="line-clamp-2 min-h-[3.25rem] font-display text-xl font-semibold leading-[26px] group-hover:underline">{m.question}</p>
+      </div>
+      <div className="grid gap-1.5">
+        <div className="flex items-center justify-between font-mono text-[13px] leading-[18px] tabular">
+          <span className="text-yes">YES <b>{p}%</b></span>
+          <span className="text-no">NO <b>{100 - p}%</b></span>
+        </div>
+        <SplitBar m={m} />
+        <p className="text-xs font-medium text-muted-foreground"><span className="font-mono tabular">{compactUSDC(pool(m))}</span> pool · {fmt(m.predictors)} predictors</p>
       </div>
       {m.status === "open" && (
-        <div className="grid grid-cols-2 gap-2">
-          <span className="rounded-lg bg-yes-tint px-3 py-2 text-sm font-semibold text-yes">Yes <span className="float-right font-mono text-xs leading-5">{multiplier(m, "YES").toFixed(2)}×</span></span>
-          <span className="rounded-lg bg-no-tint px-3 py-2 text-sm font-semibold text-no">No <span className="float-right font-mono text-xs leading-5">{multiplier(m, "NO").toFixed(2)}×</span></span>
+        <div className="grid grid-cols-2 gap-3">
+          <span className="flex h-11 items-center justify-between rounded-lg border border-yes-fill px-3 text-[15px] font-semibold text-yes">Yes <span className="font-mono text-xs">{multiplier(m, "YES").toFixed(2)}×</span></span>
+          <span className="flex h-11 items-center justify-between rounded-lg border border-no-fill px-3 text-[15px] font-semibold text-no">No <span className="font-mono text-xs">{multiplier(m, "NO").toFixed(2)}×</span></span>
         </div>
       )}
     </Link>
@@ -209,7 +227,7 @@ export function PageHeader({ title, description, actions, eyebrow, className }: 
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
       <div className="min-w-0 max-w-3xl">
         {eyebrow && <div className="mb-2">{eyebrow}</div>}
-        <h1 className="font-display text-3xl font-extrabold leading-tight md:text-[34px]">{title}</h1>
+        <h1 className="font-display text-[32px] font-bold leading-[36px] md:text-[40px] md:leading-[44px]">{title}</h1>
         {description && <p className="mt-1.5 text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -220,7 +238,7 @@ export function PageHeader({ title, description, actions, eyebrow, className }: 
 export function SectionHeader({ title, href, linkLabel = "See all", count }: { title: string; href?: string; linkLabel?: string; count?: number }) {
   return (
     <div className="mb-4 flex items-baseline justify-between gap-4">
-      <h2 className="font-display text-xl font-bold">
+      <h2 className="font-display text-[22px] font-bold leading-7 md:text-[28px] md:leading-8">
         {title}
         {count !== undefined && <span className="ml-2 font-mono text-sm font-normal text-muted-foreground">{count}</span>}
       </h2>
@@ -231,9 +249,9 @@ export function SectionHeader({ title, href, linkLabel = "See all", count }: { t
 
 export function EmptyState({ icon: Icon = Radio, title, body, action }: { icon?: React.ElementType; title: string; body?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-label"><Icon className="h-5 w-5" /></span>
-      <p className="font-display text-lg font-semibold">{title}</p>
+    <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card px-6 py-12 text-center">
+      <span className="grid h-12 w-12 place-items-center rounded-full border text-label"><Icon className="h-6 w-6" /></span>
+      <p className="font-display text-xl font-semibold leading-[26px]">{title}</p>
       {body && <p className="max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action}
     </div>
@@ -241,11 +259,11 @@ export function EmptyState({ icon: Icon = Radio, title, body, action }: { icon?:
 }
 
 export function Stat({ label, value, sub, tone, className }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "neon" | "yes" | "no" | "warn" | "danger"; className?: string }) {
-  const toneCls = { neon: "text-neon", yes: "text-yes", no: "text-no", warn: "text-warn", danger: "text-coral-soft" }[tone ?? "neon"];
+  const toneCls = { neon: "text-neon", yes: "text-yes", no: "text-no", warn: "text-warn", danger: "text-foreground" }[tone ?? "neon"];
   return (
-    <div className={cn("rounded-xl border bg-card p-4", className)}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn("mt-1 font-mono text-2xl font-bold tabular", tone ? toneCls : "text-foreground")}>{value}</p>
+    <div className={cn("rounded-2xl border bg-card p-4", className)}>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className={cn("mt-1 font-mono text-[28px] font-bold leading-8 tabular", tone ? toneCls : "text-foreground")}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );

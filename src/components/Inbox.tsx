@@ -11,7 +11,7 @@ import { cn, sanitizeChat } from "@/lib/utils";
 export interface Convo { id: string; with: string; preview: string; when: string; unread: number; kind: string }
 export interface Msg { me: boolean; text: string; when: string }
 
-const nameOf = (h: string) => (h === "support" ? "xp.live Support" : streamerByHandle(h)?.name ?? h);
+const nameOf = (h: string) => (h === "support" ? "balz Support" : streamerByHandle(h)?.name ?? h);
 
 /** Two-pane inbox shared by viewer Messages and Creator Studio Messages. */
 export function Inbox({ convos, thread, kinds = ["All", "Whispers", "Support"] }: { convos: Convo[]; thread: Msg[]; kinds?: string[] }) {
@@ -38,7 +38,7 @@ export function Inbox({ convos, thread, kinds = ["All", "Whispers", "Support"] }
             return (
               <li key={c.id}>
                 <button onClick={() => setActive(c.id)} aria-current={c.id === active} className={cn("flex w-full gap-3 border-b px-3 py-3 text-left hover:bg-surface", c.id === active && "bg-surface-2")}>
-                  {cs ? <ChannelAvatar s={cs} size={40} ring={false} /> : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-neon-dim text-neon"><LifeBuoy className="h-5 w-5" /></span>}
+                  {cs ? <ChannelAvatar s={cs} size={40} ring={false} /> : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-secondary text-label"><LifeBuoy className="h-5 w-5" /></span>}
                   <span className="min-w-0 flex-1">
                     <span className="flex justify-between gap-2"><span className="truncate font-semibold">{nameOf(c.with)}</span><span className="shrink-0 text-xs text-muted-foreground">{c.when}</span></span>
                     <span className={cn("block truncate text-sm", c.unread ? "text-foreground" : "text-muted-foreground")}>{c.preview}</span>
@@ -54,7 +54,7 @@ export function Inbox({ convos, thread, kinds = ["All", "Whispers", "Support"] }
       {cur ? (
         <div className="flex min-h-[520px] flex-col">
           <div className="flex items-center gap-3 border-b px-4 py-3">
-            {s ? <ChannelAvatar s={s} size={36} ring={false} /> : <span className="grid h-9 w-9 place-items-center rounded-full bg-neon-dim text-neon"><LifeBuoy className="h-4 w-4" /></span>}
+            {s ? <ChannelAvatar s={s} size={36} ring={false} /> : <span className="grid h-9 w-9 place-items-center rounded-full border bg-secondary text-label"><LifeBuoy className="h-4 w-4" /></span>}
             <div className="min-w-0 flex-1"><p className="font-semibold">{nameOf(cur.with)}</p><p className="text-xs text-muted-foreground">{cur.kind === "Support" ? "Replies within 24 hours" : s?.live ? "Live now" : "Offline"}</p></div>
             <Badge variant="muted">{cur.kind}</Badge>
             <Button variant="ghost" size="icon" aria-label="Archive conversation"><Archive /></Button>

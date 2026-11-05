@@ -8,7 +8,7 @@ export const adminUsers = [
   { id: "u-1077", name: "mira_k", email: "mira@proton.me", role: "Viewer", status: "Active", joined: "Jul 9, 2026", country: "LV", flags: 0 },
   { id: "u-1101", name: "rage_kid", email: "ragekid99@gmail.com", role: "Viewer", status: "Suspended", joined: "Aug 14, 2026", country: "GB", flags: 3 },
   { id: "u-1188", name: "spam_bot_77", email: "x8812@tempmail.io", role: "Viewer", status: "Banned", joined: "Oct 28, 2026", country: "?", flags: 5 },
-  ...streamers.slice(0, 12).map((s, i) => ({ id: `u-c${i}`, name: s.name, email: `${s.handle.replace(/-/g, ".")}@creators.xp.live`, role: "Creator", status: "Active", joined: "Jun 2026", country: s.country, flags: 0 })),
+  ...streamers.slice(0, 12).map((s, i) => ({ id: `u-c${i}`, name: s.name, email: `${s.handle.replace(/-/g, ".")}@creators.balz.tv`, role: "Creator", status: "Active", joined: "Jun 2026", country: s.country, flags: 0 })),
 ];
 
 export const reports = [
@@ -57,11 +57,11 @@ export const auditLog = [
   { when: "Today 14:11", who: "System", action: "Auto-voided question", target: "Will Flora score in the first half?", reason: "No result after 60 min" },
   { when: "Yesterday 22:30", who: "Test Admin", action: "Changed revenue split", target: "Tips 10% → 5%", reason: "Creator programme launch" },
   { when: "Yesterday 11:02", who: "Test Admin", action: "Approved payout", target: "PO-1031 · 268.10 USDC", reason: "" },
-  { when: "Oct 26", who: "Test Admin", action: "Reserved handle", target: "xplive-official", reason: "Brand protection" },
+  { when: "Oct 26", who: "Test Admin", action: "Reserved handle", target: "balz-official", reason: "Brand protection" },
 ];
 
 export const reservedHandles = [
-  { handle: "xplive", reason: "Brand", added: "May 20" }, { handle: "xplive-official", reason: "Brand", added: "Oct 26" },
+  { handle: "balz", reason: "Brand", added: "May 20" }, { handle: "balz-official", reason: "Brand", added: "Oct 26" },
   { handle: "support", reason: "System", added: "May 20" }, { handle: "admin", reason: "System", added: "May 20" }, { handle: "thunderpick", reason: "Partner", added: "Jun 2" },
 ];
 

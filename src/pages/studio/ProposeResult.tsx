@@ -63,10 +63,10 @@ export default function ProposeResult() {
       </Card>
 
       {done ? (
-        <Card className="border-neon/30"><CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+        <Card className=""><CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           {m.status === "settled" ? <CheckCircle2 className="h-10 w-10 text-neon" /> : <CircleSlash className="h-10 w-10 text-label" />}
           <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
-          {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
+          {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border px-3 py-1 text-neon" />}
           <p className="text-muted-foreground">Viewers have been notified. The result shows in chat and on your channel.</p>
           <Button asChild><Link to="/studio/predictions">Ask the next question</Link></Button>
         </CardContent></Card>
@@ -90,7 +90,7 @@ export default function ProposeResult() {
                 <Film className="mt-0.5 h-5 w-5 shrink-0 text-neon" />
                 <div>
                   <p className="font-semibold">Clipped for you when you settle</p>
-                  <p className="mt-0.5 text-label">This question was open for {durLabel(plan.durationSec)}, so xp.live scans the stream from when it opened, finds the moment and attaches a {durLabel(plan.clipSec)} clip. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
+                  <p className="mt-0.5 text-label">This question was open for {durLabel(plan.durationSec)}, so balz scans the stream from when it opened, finds the moment and attaches a {durLabel(plan.clipSec)} clip. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
                 </div>
               </div>
             </section>
@@ -106,7 +106,7 @@ export default function ProposeResult() {
                   </button>
                 ))}
               </div>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground"><ShieldAlert className="h-4 w-4" /> Frequent voids are reviewed by the xp.live team.</p>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground"><ShieldAlert className="h-4 w-4" /> Frequent voids are reviewed by the balz team.</p>
             </section>
           )}
 

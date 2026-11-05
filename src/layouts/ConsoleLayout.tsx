@@ -16,7 +16,7 @@ function Nav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => vo
     <nav className="flex flex-col gap-5 text-sm">
       {groups.map((g, i) => (
         <div key={g.label ?? i}>
-          {g.label && <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{g.label}</p>}
+          {g.label && <p className="mb-1 px-3 text-xs font-medium text-muted-foreground">{g.label}</p>}
           <ul className="space-y-0.5">
             {g.items.map((it) => (
               <li key={it.to}>
@@ -30,7 +30,7 @@ function Nav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => vo
                 >
                   {({ isActive }) => (
                     <>
-                      <it.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-neon" : "text-muted-foreground")} />
+                      <it.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
                       <span className="flex-1 truncate">{it.label}</span>
                       {it.badge}
                     </>
@@ -55,12 +55,12 @@ export function ConsoleLayout({ title, groups, topRight, banner, children }: { t
       {banner}
       <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/90 px-3 backdrop-blur md:px-5">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></Button>
-        <Link to="/" aria-label="xp.live home" className="pt-1"><Logo size={26} /></Link>
-        <Badge variant="neon" className="font-mono uppercase tracking-wider">{title}</Badge>
+        <Link to="/" aria-label="balz home" className="pt-1"><Logo size={30} /></Link>
+        <Badge variant="default">{title}</Badge>
         <div className="ml-auto flex items-center gap-2">
           {topRight}
           <ThemeToggle />
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/"><ArrowLeft /> Back to xp.live</Link></Button>
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/"><ArrowLeft /> Back to balz</Link></Button>
         </div>
       </header>
       <div className="flex">

@@ -3,25 +3,27 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+/* balz.tv buttons: one filled (lime) button per view; everything else outlined or text.
+   YES/NO are outlined lime/coral with YES/NO ink text. Destructive actions are outlined ink, never coral. */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[15px] font-semibold transition-[color,background-color,border-color,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-accent",
-        outline: "border border-input bg-transparent hover:bg-secondary",
-        ghost: "hover:bg-secondary",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-coral-soft",
-        "destructive-outline": "border border-coral/50 text-coral-soft hover:bg-coral/10",
-        yes: "bg-yes-fill text-yes-ink hover:bg-yes-fill/90",
-        no: "bg-no-fill text-no-ink hover:bg-no-fill/90",
+        default: "border border-lime bg-lime font-bold text-lime-ink hover:brightness-105",
+        secondary: "border border-border bg-transparent text-foreground hover:border-muted-foreground",
+        outline: "border border-border bg-transparent text-foreground hover:border-muted-foreground",
+        ghost: "text-label hover:bg-secondary hover:text-foreground",
+        destructive: "border border-foreground bg-transparent text-foreground hover:bg-secondary",
+        "destructive-outline": "border border-border bg-transparent text-foreground hover:border-foreground",
+        yes: "border border-yes-fill bg-transparent text-yes hover:bg-yes-tint",
+        no: "border border-no-fill bg-transparent text-no hover:bg-no-tint",
         link: "text-foreground underline-offset-4 hover:underline px-0",
       },
       size: {
-        default: "h-10 px-4",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-12 rounded-xl px-6 text-base",
+        default: "h-11 px-4",
+        sm: "h-9 px-3 text-[13px]",
+        lg: "h-12 px-6 text-base",
         icon: "h-10 w-10",
         "icon-sm": "h-8 w-8",
       },

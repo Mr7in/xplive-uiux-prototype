@@ -94,7 +94,7 @@ export default function Wallet() {
       <PageHeader title="Wallet & predictions" description={<span className="inline-flex flex-wrap items-center gap-2">Your USDC balance, deposits and withdrawals, and every prediction you’ve made. <NetworkChip /></span>} actions={<Button asChild variant="ghost" size="sm"><Link to="/settings?tab=limits">Limits &amp; self-exclusion</Link></Button>} />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <Card className="border-neon/25">
+        <Card>
           <CardContent className="flex flex-col gap-5 pt-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -121,7 +121,7 @@ export default function Wallet() {
                   <Button variant="link" size="sm" onClick={() => ui.open("add")}>Connect a wallet</Button>
                 </>
               )}
-              <span className="ml-auto text-xs text-muted-foreground">Your xp.live wallet: <span className="font-mono">{short(depositAddress)}</span></span>
+              <span className="ml-auto text-xs text-muted-foreground">Your balz wallet: <span className="font-mono">{short(depositAddress)}</span></span>
             </div>
           </CardContent>
         </Card>

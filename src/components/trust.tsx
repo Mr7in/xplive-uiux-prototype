@@ -161,7 +161,7 @@ export function EvidenceButton({ m }: { m: Market }) {
           <DialogHeader>
             <DialogTitle>Evidence · {m.question}</DialogTitle>
             <DialogDescription>{m.clip
-              ? <>Clipped automatically by xp.live from {s.name}’s stream when the result was posted: {durLabel(m.clip.sec)}, {m.clip.start} to {m.clip.end}, moment at {m.clip.moment}. The clipper scanned {m.clip.scannedFrom} to {m.clip.scannedTo}.</>
+              ? <>Clipped automatically by balz from {s.name}’s stream when the result was posted: {durLabel(m.clip.sec)}, {m.clip.start} to {m.clip.end}, moment at {m.clip.moment}. The clipper scanned {m.clip.scannedFrom} to {m.clip.scannedTo}.</>
               : <>{m.evidence}. Captured from {s.name}’s stream at stream time {m.clipAt} and attached to the result.</>}</DialogDescription>
           </DialogHeader>
           <StreamThumb s={{ ...s, live: true }} frame={3} className="rounded-lg">

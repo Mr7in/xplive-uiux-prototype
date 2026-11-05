@@ -38,7 +38,7 @@ export function AskQuestion({ compact = false }: { compact?: boolean }) {
     setQ(""); setRule("");
   };
   return (
-    <Card className={cn(!compact && "border-neon/25")}>
+    <Card className={cn()}>
       <CardHeader>
         <CardTitle className="text-lg">Ask a question</CardTitle>
         <CardDescription>Viewers answer YES or NO before the timer ends. Ask about something that’s decided after it closes.</CardDescription>
@@ -56,8 +56,8 @@ export function AskQuestion({ compact = false }: { compact?: boolean }) {
           <div className="grid gap-2">
             <Label>Outcomes</Label>
             <div className="grid grid-cols-2 gap-2">
-              <div className="flex h-11 items-center justify-between rounded-lg border border-yes/30 bg-yes-tint px-3 font-display font-bold text-yes">YES <Lock className="h-3.5 w-3.5 opacity-70" /></div>
-              <div className="flex h-11 items-center justify-between rounded-lg border border-no/30 bg-no-tint px-3 font-display font-bold text-no">NO <Lock className="h-3.5 w-3.5 opacity-70" /></div>
+              <div className="flex h-11 items-center justify-between rounded-lg bg-yes-tint px-3 font-display font-bold text-yes">YES <Lock className="h-3.5 w-3.5 opacity-70" /></div>
+              <div className="flex h-11 items-center justify-between rounded-lg bg-no-tint px-3 font-display font-bold text-no">NO <Lock className="h-3.5 w-3.5 opacity-70" /></div>
             </div>
             <p className="text-xs text-muted-foreground">Every question has exactly two outcomes, YES and NO.</p>
           </div>
@@ -86,9 +86,9 @@ export function RunningQuestion({ m }: { m: Market }) {
   const [confirmVoid, setConfirmVoid] = React.useState(false);
   const nav = useNavigate();
   return (
-    <Card className="border-neon/30">
+    <Card className="">
       <CardContent className="space-y-3 pt-5">
-        <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neon"><span className="h-2 w-2 animate-live-pulse rounded-full bg-lime" /> Running now</span><span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 font-mono text-sm font-bold"><Clock className="h-3.5 w-3.5" />{timeLeft(m.secondsLeft ?? 0)}</span></div>
+        <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground"><span className="h-2 w-2 animate-live-pulse rounded-full bg-live" /> Running now</span><span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-sm font-bold"><Clock className="h-3.5 w-3.5" />{timeLeft(m.secondsLeft ?? 0)}</span></div>
         <p className="font-display text-xl font-bold leading-snug">{m.question}</p>
         <SplitBar m={m} />
         <div className="flex justify-between font-mono text-xs"><span className="text-yes">YES {yesPct(m)}% · {fmt(m.yesPool)}</span><span className="text-muted-foreground">{fmt(m.predictors)} in</span><span className="text-no">{fmt(m.noPool)} · {100 - yesPct(m)}% NO</span></div>
@@ -112,7 +112,7 @@ export function NeedsResult({ m }: { m: Market }) {
   return (
     <Card className="border-2 border-warn/60 bg-warn-bg">
       <CardContent className="space-y-3 pt-5">
-        <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-warn"><Hourglass className="h-3.5 w-3.5" /> Needs your result</span><span className="text-xs text-label">Closed {m.closedMinsAgo ?? 0} min ago · {fmt(m.predictors)} waiting</span></div>
+        <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground"><Hourglass className="h-3.5 w-3.5" /> Needs your result</span><span className="text-xs text-label">Closed {m.closedMinsAgo ?? 0} min ago · {fmt(m.predictors)} waiting</span></div>
         <p className="font-display text-xl font-bold leading-snug">{m.question}</p>
         <p className="text-sm text-label">{fmtUSDC(pool(m))} is waiting to be paid out. Unresolved questions are voided automatically after 60 minutes.</p>
         <Button asChild size="lg" className="w-full"><Link to={`/studio/predictions/${m.id}/result`}>Propose the result</Link></Button>

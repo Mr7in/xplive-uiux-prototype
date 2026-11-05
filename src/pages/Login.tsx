@@ -12,7 +12,7 @@ export default function Login({ mode = "signin" }: { mode?: "signin" | "signup" 
     <div className="grid min-h-screen place-items-center px-4 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 inline-block"><Logo size={40} /></Link>
-        <h1 className="font-display text-3xl font-extrabold">{mode === "signin" ? "Log in to xp.live" : "Create your account"}</h1>
+        <h1 className="font-display text-3xl font-extrabold">{mode === "signin" ? "Log in to balz" : "Create your account"}</h1>
         <p className="mb-6 mt-1 text-muted-foreground">Watch live. Call what happens next.</p>
         <AuthForm initial={mode} />
       </div>

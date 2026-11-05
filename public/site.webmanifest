@@ -1,10 +1,10 @@
 {
-  "name": "xp.live",
-  "short_name": "xp.live",
+  "name": "balz.tv",
+  "short_name": "balz",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0e1019",
-  "theme_color": "#0e1019",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icon-192.png",

@@ -1,6 +1,6 @@
-# xp.live web · developer handoff
+# balz.tv web (formerly xp.live) · developer handoff
 
-Front-end for the three xp.live roles (viewer, creator, admin), built with React 18, TypeScript, Vite, Tailwind CSS and shadcn/ui. Everything runs on mock data so the UI can be reviewed and wired to the real API screen by screen.
+Front-end for the three balz.tv roles (viewer, creator, admin), built with React 18, TypeScript, Vite, Tailwind CSS and shadcn/ui. Everything runs on mock data so the UI can be reviewed and wired to the real API screen by screen.
 
 ## Run it
 
@@ -19,30 +19,40 @@ Test accounts (any password of 6+ characters works in the mock):
 | Creator | test.streamer@xplive.com (owns the channel Nordic Slots God) |
 | Admin   | test.admin@xplive.com     |
 
-## Brand (xp.live CVI · Midnight Contrast)
+## Brand (balz.tv design system)
 
-Tokens live in `src/index.css` (shadcn HSL variables) and `tailwind.config.js` (named brand colours).
+The UI follows the **balz.tv** design system (the Design System artifact "balz.tv": tokens, components, logo files, brand book). balz.tv is the same platform as xp.live, renamed, on the same black / lime / Outfit system.
 
-| Token | Hex | Use |
-|---|---|---|
-| background | `#0e1019` | page |
-| surface / card | `#161a28` | cards, panels |
-| surface-2 | `#1e2336` | raised, inputs on cards |
-| border | `#303754` (22% L in UI) | dividers |
-| neon (primary) | `#c8ff00` | primary actions, focus ring, active nav |
-| yes | `#34edc5` (CVI cyan) | YES side everywhere (text darkens to `#097c65` in light mode) |
-| no | `#a78bfa` (CVI violet) | NO side everywhere (text `#6a44de` in light mode) |
-| live | `#ff4d6d` (CVI coral) | LIVE badges, live dot |
-| foreground | `#eef0fb` | text |
-| muted | `#9ca2c0` | secondary text (AA on all surfaces) |
+Tokens live in `src/index.css` (shadcn HSL variables + RGB brand triplets) and `tailwind.config.js` (named brand colours, radius).
 
-YES/NO are cyan and violet rather than green/red so they stay distinguishable for colour-blind viewers and never collide with the coral LIVE badge. They always carry a text label too.
+| Token | Dark (default) | Light | Use |
+|---|---|---|---|
+| ground (`background`) | `#000000` | `#FFFFFF` | page |
+| surface (`card`) | `#111111` | `#F4F4F2` | cards, rails, header |
+| surface-raised (`popover`, `surface-2`) | `#1A1A1A` | `#FFFFFF` | sheets, popovers, the prediction ticket |
+| line (`border`) | `#2A2A2A` | `#DADAD5` | 1px hairlines; no shadows on resting surfaces |
+| ink / ink-muted (`label`) / ink-meta (`muted-foreground`) | `#FFF` / `#B4B4B4` / `#949494` | `#0A0A0A` / `#4A4A4A` / `#5E5E5E` | text |
+| lime (`primary`, `yes-fill`) | `#C8FF00` | `#C8FF00` (fill only) | the one primary action per view, the user's own position, YES |
+| yes-ink (`text-yes`, `text-neon`) | `#C8FF00` | `#3F5A00` | YES text and positive figures |
+| coral (`no-fill`, `live`) | `#FF4D6D` | `#FF4D6D` | NO and the live dot, nothing else |
+| no-ink (`text-no`) | `#FF4D6D` | `#B4133A` | NO text |
+| lime-soft / coral-soft (`yes-tint`, `no-tint`) | `#24300A` / `#3A1018` | `#EEFFB8` / `#FFE1E7` | pale pill tints, own-position row |
+| violet / teal | `#7B61FF` / `#00D4AA` | same | chart series only, never chrome |
 
-Light and dark mode: tokens are CSS variables in `src/index.css` (`:root` = light, `.dark` = dark). `src/lib/theme.tsx` holds the toggle (Light / Dark / Match my device, saved per browser); the inline script in `index.html` applies it before first paint. Dark is the default. Brand text accents use `text-neon` (lime in dark, olive `#4a6600` in light for contrast); lime fills use `bg-lime` with `text-lime-ink`. The logo `p` switches to the CVI light-mode violet.
+Rules encoded in the components:
+- **YES is lime, NO is coral everywhere** (odds ring, odds bar, pills, ticket buttons). Coral is never used for errors: errors are plain ink text inside the block that failed.
+- **One filled (lime) button per view.** The header's Log in / Sign up are outlined; the page owns the lime button (hero CTA, ticket confirm). Selected toggles use an ink fill, not lime.
+- Status pills (`Badge`) are pale tint with same-hue text, `rounded-full`, sentence case. `LiveBadge` is a coral-soft pill with a coral dot pulsing at 1.6s.
+- `OddsRing` (in `components/xp.tsx`) shows live odds as the logo's ring, animating over 400ms; `SplitBar` is the DS OddsBar (8px, 3px gap).
+- Radius: 6px tags, 10px buttons and inputs, 16px cards / ticket / player, full for pills.
+- Icons: lucide line icons at 1.75px stroke (set globally in `index.css`), `currentColor`; lime is never an icon colour.
+- Motion: 150–200ms ease-out.
 
-Fonts: Outfit (headings, display), DM Sans (body), Space Mono (numbers, timers, balances). Loaded from Google Fonts in `index.html`.
+Light and dark mode: `:root` = light, `.dark` = dark. `src/lib/theme.tsx` holds the toggle (Light / Dark / Match my device, saved per browser); the inline script in `index.html` applies it before first paint. Dark is the default.
 
-Logo: `src/components/brand/Logo.tsx` (`Logo` wordmark, `LogoMark` app icon). Favicons, app icons and the link-preview image are in `public/`. Source HTML for the icon and OG image is in `brand/`.
+Fonts: Outfit for everything, Space Mono only for numbers that matter (odds, stakes, balances, payouts, countdowns, hashes). Loaded from Google Fonts in `index.html`.
+
+Logo: `src/components/brand/Logo.tsx` (`Logo` wordmark with the fixed 62/38 odds-ring "a", letters in `currentColor`; `LogoGlyph` the "a" alone; `LogoMark` the app icon). The logo never animates in product UI and the split never changes. Favicons and app icons in `public/` are rendered from `brand/balz-app-icon.svg` / `brand/balz-favicon-square.svg` with `rsvg-convert`; the link-preview image is rendered from `brand/og.html`.
 
 ## Money and chain
 
