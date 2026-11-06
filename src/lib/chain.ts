@@ -38,5 +38,5 @@ export function mockHex(seed: string, len = 64) {
   return "0x" + out.slice(0, len);
 }
 
-/** The signed-in user's balz deposit wallet (custodial smart account) — mock. */
+/** The signed-in user's xp.live deposit wallet (custodial smart account) — mock. */
 export const depositAddressFor = (userId: string) => mockHex("deposit:" + userId, 40);

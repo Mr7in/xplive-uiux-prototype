@@ -138,7 +138,7 @@ const seedTransfers = buildLedger(seedPositions);
 
 interface State {
   user: Account | null;
-  balance: number; // USDC available in the user's balz wallet
+  balance: number; // USDC available in the user's xp.live wallet
   markets: Market[];
   positions: Position[];
   follows: Record<string, string[]>;

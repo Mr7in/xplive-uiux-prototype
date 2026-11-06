@@ -42,7 +42,7 @@ export function SupportCenter({ audience, tickets }: { audience: "viewer" | "cre
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {topics.map((t) => (
             <Card key={t.title} className="transition hover:border-input">
-              <CardHeader><t.icon className="mb-2 h-6 w-6 text-label" /><CardTitle>{t.title}</CardTitle><CardDescription>{t.body}</CardDescription></CardHeader>
+              <CardHeader><t.icon className="mb-2 h-5 w-5 text-neon" /><CardTitle>{t.title}</CardTitle><CardDescription>{t.body}</CardDescription></CardHeader>
             </Card>
           ))}
         </div>
@@ -51,7 +51,7 @@ export function SupportCenter({ audience, tickets }: { audience: "viewer" | "cre
           <CardContent>
             <ul className="divide-y text-sm">
               {(audience === "creator"
-                ? ["Set up OBS for balz in 5 minutes", "Writing a YES/NO question viewers can trust", "What happens when I void a prediction?", "When do payouts arrive?", "Adding moderators and AutoMod rules"]
+                ? ["Set up OBS for xp.live in 5 minutes", "Writing a YES/NO question viewers can trust", "What happens when I void a prediction?", "When do payouts arrive?", "Adding moderators and AutoMod rules"]
                 : ["How are prediction payouts calculated?", "Why was my prediction returned?", "How do I dispute a result?", "Adding USDC on Polygon Amoy", "Setting time and spend limits"]
               ).map((a) => <li key={a}><a href="#" className="block py-2.5 hover:text-foreground">{a}</a></li>)}
             </ul>

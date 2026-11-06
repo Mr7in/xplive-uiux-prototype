@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolved: "light" | "dark" = mode === "system" ? (sys ? "dark" : "light") : mode;
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", resolved === "dark");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#000000" : "#ffffff");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0a0a0a" : "#f1f2f8");
   }, [resolved]);
   const setMode = React.useCallback((m: ThemeMode) => {
     setModeState(m);

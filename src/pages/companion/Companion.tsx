@@ -128,7 +128,7 @@ function CompanionLogin({ s }: { s: Streamer }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email.includes("@")) return setError("Enter the email you log in to balz with.");
+    if (!email.includes("@")) return setError("Enter the email you log in to xp.live with.");
     if (password.length < 6) return setError("Passwords are at least 6 characters.");
     setBusy(true);
     window.setTimeout(() => {
@@ -175,7 +175,7 @@ function CompanionLogin({ s }: { s: Streamer }) {
               </button>
             </div>
           </div>
-          {error && <p role="alert" className="rounded-lg border px-3 py-2 text-sm text-foreground">{error}</p>}
+          {error && <p role="alert" className="rounded-lg bg-coral/10 px-3 py-2 text-sm text-coral-soft">{error}</p>}
           <Button type="submit" size="lg" disabled={busy}>{busy ? "Checking…" : "Unlock controls"}</Button>
         </form>
         <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
@@ -190,7 +190,7 @@ function CompanionLogin({ s }: { s: Streamer }) {
 
 function Countdown({ sec }: { sec: number }) {
   const low = sec <= 10;
-  return <span className={cn("font-mono font-bold tabular-nums", low && "underline decoration-2 underline-offset-4")}>{timeLeft(sec)}</span>;
+  return <span className={cn("font-mono font-bold tabular-nums", low && "text-coral")}>{timeLeft(sec)}</span>;
 }
 
 function RunningPanel({ m, onVoid }: { m: Market; onVoid: (id: string) => void }) {
@@ -198,7 +198,7 @@ function RunningPanel({ m, onVoid }: { m: Market; onVoid: (id: string) => void }
   const settings = React.useContext(SettingsCtx);
   const sec = m.secondsLeft ?? 0;
   return (
-    <section aria-label="Running question" className="flex h-full flex-col gap-4 rounded-2xl border bg-card p-5">
+    <section aria-label="Running question" className="flex h-full flex-col gap-4 rounded-3xl border border-neon/30 bg-card p-5">
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-neon"><span className="h-2.5 w-2.5 animate-live-pulse rounded-full bg-lime" /> Live on stream</span>
         <span className="font-mono text-xs text-muted-foreground">{fmt(m.predictors)} in · {fmtUSDC(pool(m))}</span>
@@ -354,10 +354,10 @@ function SettleCard({ m, s, preVoid, busy, onBusy, onDone }: { m: Market; s: Str
 
 function DoneCard({ m, onNext }: { m: Market; onNext: () => void }) {
   return (
-    <section className="flex flex-col items-center gap-2 rounded-2xl border bg-card p-6 text-center" aria-live="polite">
+    <section className="flex flex-col items-center gap-2 rounded-3xl border border-neon/30 bg-card p-6 text-center" aria-live="polite">
       <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-lime-ink"><Check className="h-6 w-6" strokeWidth={3} /></span>
       <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
-      {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border px-3 py-1 text-neon" />}
+      {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
       <p className="text-sm text-label">{m.status === "settled" ? `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers. Shown in chat now with the evidence clip. Viewers can dispute for 2 hours.` : `${fmtUSDC(pool(m))} back to ${fmt(m.predictors)} viewers.`}</p>
       <Button className="mt-2 h-12 w-full rounded-xl" variant="secondary" onClick={onNext}>Done</Button>
     </section>
@@ -462,7 +462,7 @@ function Console({ s }: { s: Streamer }) {
                 {s.live ? <><LiveBadge /><span className="font-mono">{hms(streamSec)}</span><span className="hidden sm:inline">· {compact(s.viewers)} watching</span></> : "Offline"}
               </p>
             </div>
-            <span className="hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-label sm:flex" title="Changes show on stream straight away"><span className="h-2 w-2 rounded-full bg-label" /> Synced</span>
+            <span className="hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-label sm:flex" title="Changes show on stream straight away"><span className="h-2 w-2 rounded-full bg-cyan" /> Synced</span>
             <Button variant="outline" size="icon" aria-label="Lock controls" onClick={() => { setLocked(true); buzz(settings.haptics, 15); }}><Lock /></Button>
             <Button variant="outline" size="icon" aria-label="Menu" onClick={() => setMenu(true)}><Menu /></Button>
           </div>
@@ -560,7 +560,7 @@ export default function Companion() {
           <Smartphone className="mx-auto h-10 w-10 text-label" />
           <p className="mt-4 font-display text-2xl font-bold">No controls at this address</p>
           <p className="mt-1 text-muted-foreground">Check the link in Studio › Companion app.</p>
-          <Button asChild variant="secondary" className="mt-6"><Link to="/">Go to balz</Link></Button>
+          <Button asChild variant="secondary" className="mt-6"><Link to="/">Go to xp.live</Link></Button>
         </div>
       </div>
     );

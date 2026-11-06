@@ -49,11 +49,11 @@ export const VOID_REASONS = ["The event didn’t happen", "Stream cut out", "The
 /**
  * Each streamer's companion link. Uses the channel handle so it is easy to type on a phone;
  * only the channel owner's account can sign in there.
- * Production: https://balz.tv/control/<handle> (BrowserRouter).
+ * Production: https://xp.live/control/<handle> (BrowserRouter).
  */
 export const companionPath = (handle: string) => `/control/${handle}`;
 export function companionUrl(handle: string) {
-  if (typeof window === "undefined") return `https://balz.tv/control/${handle}`;
+  if (typeof window === "undefined") return `https://xp.live/control/${handle}`;
   const { origin, pathname } = window.location;
   return `${origin}${pathname}#${companionPath(handle)}`;
 }

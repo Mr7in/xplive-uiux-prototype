@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const SITE = "balz.tv";
+const SITE = "xp.live";
 const DEFAULT_DESC = "Live streams, community chat and YES/NO predictions on what happens next.";
 
 function setMeta(attr: "name" | "property", key: string, value: string) {

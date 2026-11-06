@@ -31,7 +31,7 @@ function ModChat() {
       <div className="flex items-center justify-between border-b px-4 py-2.5"><p className="font-display text-sm font-semibold">Chat</p><span className="flex gap-1.5"><Badge variant="muted">Slow 3s</Badge><Badge variant="neon">AutoMod on</Badge></span></div>
       <ol className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
         {msgs.map((m) => (
-          <li key={m.id} className={m.held ? "rounded-lg border border-foreground/40 p-2" : "group flex items-start gap-2 rounded-md px-1 py-0.5 hover:bg-secondary"}>
+          <li key={m.id} className={m.held ? "rounded-lg border border-coral/40 bg-coral/5 p-2" : "group flex items-start gap-2 rounded-md px-1 py-0.5 hover:bg-secondary"}>
             {m.held ? (
               <>
                 <p className="text-xs font-semibold text-coral-soft">Held by AutoMod · links</p>
@@ -75,7 +75,7 @@ export default function StudioDashboard() {
           <div><dt className="text-xs text-muted-foreground">Watching</dt><dd className="font-mono font-bold">{fmt(s.viewers)}</dd></div>
           <div><dt className="text-xs text-muted-foreground">New followers</dt><dd className="font-mono font-bold text-neon">+86</dd></div>
           <div><dt className="text-xs text-muted-foreground">Tips</dt><dd className="font-mono font-bold">{fmtUSDC(46.5)}</dd></div>
-          <div><dt className="text-xs text-muted-foreground">Stream health</dt><dd className="flex items-center gap-1.5 font-semibold"><Wifi className="h-4 w-4 text-label" /> Excellent <span className="font-mono text-xs font-normal text-muted-foreground">6.0 Mbps · 60 fps · 1080p</span></dd></div>
+          <div><dt className="text-xs text-muted-foreground">Stream health</dt><dd className="flex items-center gap-1.5 font-semibold"><Wifi className="h-4 w-4 text-cyan" /> Excellent <span className="font-mono text-xs font-normal text-muted-foreground">6.0 Mbps · 60 fps · 1080p</span></dd></div>
         </dl>
         <div className="ml-auto flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setEdit(true)}><Pencil /> Edit stream info</Button>

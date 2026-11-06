@@ -294,8 +294,8 @@ export function Reports() {
             <Button variant="secondary" onClick={() => { setSel(null); toast("Timed out for 24 h"); }}>Time out 24 h</Button>
             <Button variant="destructive" onClick={() => { setSel(null); toast("User suspended"); }}>Suspend user</Button>
           </div>
-          {sel?.category === "Self-harm" && <p className="rounded-lg border p-3 text-sm">Send the user our support resources message before taking any other action.</p>}
-          {sel?.category === "Underage user" && <p className="rounded-lg border border-foreground/40 p-3 text-sm">Lock the account’s access to casino categories now, then request age verification.</p>}
+          {sel?.category === "Self-harm" && <p className="rounded-lg border border-cyan/40 bg-cyan/5 p-3 text-sm">Send the user our support resources message before taking any other action.</p>}
+          {sel?.category === "Underage user" && <p className="rounded-lg border border-coral/40 bg-coral/5 p-3 text-sm">Lock the account’s access to casino categories now, then request age verification.</p>}
         </DialogContent>
       </Dialog>
     </Page>
@@ -410,7 +410,7 @@ export function Handles() {
     <Page title="Reserved handles" description="Names nobody can claim as a channel or username." actions={<Button><Plus /> Reserve handle</Button>}>
       <Table>
         <TableHeader><TableRow><TableHead>Handle</TableHead><TableHead>Reason</TableHead><TableHead>Added</TableHead><TableHead /></TableRow></TableHeader>
-        <TableBody>{reservedHandles.map((h) => <TableRow key={h.handle}><TableCell className="font-mono">balz.tv/{h.handle}</TableCell><TableCell><Badge variant="muted">{h.reason}</Badge></TableCell><TableCell className="text-muted-foreground">{h.added}</TableCell><TableCell className="text-right"><Button size="sm" variant="ghost">Release</Button></TableCell></TableRow>)}</TableBody>
+        <TableBody>{reservedHandles.map((h) => <TableRow key={h.handle}><TableCell className="font-mono">xp.live/{h.handle}</TableCell><TableCell><Badge variant="muted">{h.reason}</Badge></TableCell><TableCell className="text-muted-foreground">{h.added}</TableCell><TableCell className="text-right"><Button size="sm" variant="ghost">Release</Button></TableCell></TableRow>)}</TableBody>
       </Table>
     </Page>
   );

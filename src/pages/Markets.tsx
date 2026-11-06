@@ -22,7 +22,7 @@ const TABS: { v: MStatus; label: string; empty: string }[] = [
 ];
 
 export default function Markets() {
-  usePageMeta("Predictions", "Every open YES/NO question on balz, sorted by size and closing time.");
+  usePageMeta("Predictions", "Every open YES/NO question on xp.live, sorted by size and closing time.");
   const { markets } = useStore();
   const [params, setParams] = useSearchParams();
   const status = (params.get("status") as MStatus) || "open";

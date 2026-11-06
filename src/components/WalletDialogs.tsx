@@ -37,7 +37,7 @@ export function useWalletUI() {
 /** Testnet / mainnet chip. */
 export function NetworkChip({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-label", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-polygon/40 bg-polygon/10 px-2 py-0.5 text-[11px] font-semibold text-violet", className)}>
       <span className="h-1.5 w-1.5 rounded-full bg-polygon" />
       {NETWORK.name}{NETWORK.testnet && " · testnet"}
     </span>
@@ -178,7 +178,7 @@ function ManualTab() {
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
         <Qr value={depositAddress} />
         <div className="grid w-full gap-2">
-          <Label>Your balz deposit address</Label>
+          <Label>Your xp.live deposit address</Label>
           <CopyField value={depositAddress} label="Deposit address" />
           <div className="flex gap-2 rounded-lg border border-warn/40 bg-warn/10 p-3 text-xs text-warn">
             <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -217,7 +217,7 @@ export function AddFundsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         <DialogHeader>
           <div className="mb-1"><NetworkChip /></div>
           <DialogTitle>Add funds</DialogTitle>
-          <DialogDescription>Send USDC on {NETWORK.name}{NETWORK.testnet ? " (testnet)" : ""} to your balz wallet. It’s credited once the block is final, usually within a minute.</DialogDescription>
+          <DialogDescription>Send USDC on {NETWORK.name}{NETWORK.testnet ? " (testnet)" : ""} to your xp.live wallet. It’s credited once the block is final, usually within a minute.</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="connect">
           <TabsList className="grid grid-cols-2 border-0 bg-secondary p-1 rounded-lg">
@@ -229,7 +229,7 @@ export function AddFundsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         </Tabs>
         {NETWORK.testnet && (
           <div className="flex items-center gap-3 rounded-xl border border-dashed p-3">
-            <Droplets className="h-5 w-5 text-label" />
+            <Droplets className="h-5 w-5 text-cyan" />
             <div className="flex-1"><p className="text-sm font-semibold">Need test USDC?</p><p className="text-xs text-muted-foreground">Testnet only. Once a day.</p></div>
             <Button size="sm" variant="secondary" disabled={faucetClaimedToday} onClick={() => { claimFaucet(); toast.success("10.00 test USDC on its way"); }}>{faucetClaimedToday ? "Claimed today" : "Get 10.00 USDC"}</Button>
           </div>
@@ -253,7 +253,7 @@ export function WithdrawDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         <DialogHeader>
           <div className="mb-1"><NetworkChip /></div>
           <DialogTitle>Withdraw</DialogTitle>
-          <DialogDescription>USDC is sent to your verified payout address on {NETWORK.name}. Network fees are covered by balz.</DialogDescription>
+          <DialogDescription>USDC is sent to your verified payout address on {NETWORK.name}. Network fees are covered by xp.live.</DialogDescription>
         </DialogHeader>
         {!ready ? (
           <div className="rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm text-warn">
@@ -276,7 +276,7 @@ export function WithdrawDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             </div>
             <dl className="grid grid-cols-2 gap-y-1 rounded-xl bg-secondary p-3 text-sm">
               <dt className="text-muted-foreground">To</dt><dd className="text-right font-mono">{short(payoutAddress!.address)}</dd>
-              <dt className="text-muted-foreground">Network fee</dt><dd className="text-right">Paid by balz</dd>
+              <dt className="text-muted-foreground">Network fee</dt><dd className="text-right">Paid by xp.live</dd>
               <dt className="text-muted-foreground">You receive</dt><dd className="text-right font-mono font-bold">{fmtUSDC(amt)}</dd>
             </dl>
             <Button size="lg" disabled={amt < 5 || amt > balance} onClick={() => setHash(withdraw(amt))}>Withdraw {fmtUSDC(amt)}</Button>

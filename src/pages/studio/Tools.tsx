@@ -41,7 +41,7 @@ export function StreamSetup() {
       <Card>
         <CardHeader><CardTitle>Ingest</CardTitle><CardDescription>Paste these into your encoder’s stream settings. Treat the key like a password.</CardDescription></CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid gap-2"><Label>Server</Label><div className="flex gap-2"><Input readOnly value="rtmps://ingest-eu.balz.tv:443/live" className="font-mono" /><Button variant="secondary" onClick={() => copy("rtmps://ingest-eu.balz.tv:443/live")}><Copy /> Copy</Button></div></div>
+          <div className="grid gap-2"><Label>Server</Label><div className="flex gap-2"><Input readOnly value="rtmps://ingest-eu.xp.live:443/live" className="font-mono" /><Button variant="secondary" onClick={() => copy("rtmps://ingest-eu.xp.live:443/live")}><Copy /> Copy</Button></div></div>
           <div className="grid gap-2"><Label>Stream key</Label><div className="flex gap-2"><Input readOnly type={show ? "text" : "password"} value={key} className="font-mono" /><Button variant="ghost" size="icon" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide key" : "Show key"}>{show ? <EyeOff /> : <Eye />}</Button><Button variant="secondary" onClick={() => copy(key)}><Copy /> Copy</Button></div></div>
         </CardContent>
         <CardFooter className="justify-between"><p className="text-sm text-muted-foreground">Leaked your key? Reset it and update your encoder.</p><Button variant="destructive-outline" onClick={saved("New stream key created")}><RefreshCw /> Reset key</Button></CardFooter>
@@ -163,7 +163,7 @@ export function ActivityFeed() {
 export function Alerts() {
   return (
     <Page title="Alerts" description="On-screen alerts for your stream. Add the browser source URL to your encoder once.">
-      <Card><CardContent className="flex flex-wrap items-center gap-2 pt-5"><Input readOnly value="https://balz.tv/overlay/alerts/8842193?t=••••••" className="flex-1 font-mono" /><Button variant="secondary" onClick={saved("Copied")}><Copy /> Copy URL</Button><Button variant="outline" onClick={saved("Test alert sent")}>Send test alert</Button></CardContent></Card>
+      <Card><CardContent className="flex flex-wrap items-center gap-2 pt-5"><Input readOnly value="https://xp.live/overlay/alerts/8842193?t=••••••" className="flex-1 font-mono" /><Button variant="secondary" onClick={saved("Copied")}><Copy /> Copy URL</Button><Button variant="outline" onClick={saved("Test alert sent")}>Send test alert</Button></CardContent></Card>
       <Table>
         <TableHeader><TableRow><TableHead>Event</TableHead><TableHead>Style</TableHead><TableHead>Sound</TableHead><TableHead>On</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>{studioAlerts.map((a) => <TableRow key={a.event}><TableCell className="font-semibold">{a.event}</TableCell><TableCell className="text-label">{a.style}</TableCell><TableCell className="text-label">{a.sound}</TableCell><TableCell><Switch defaultChecked={a.on} aria-label={`${a.event} alerts`} /></TableCell><TableCell className="text-right"><Button size="sm" variant="ghost">Customise</Button></TableCell></TableRow>)}</TableBody>
@@ -192,7 +192,7 @@ export function Raids() {
         <CardHeader><CardTitle>Start a raid</CardTitle></CardHeader>
         <CardContent className="grid gap-4">
           <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Search live channels" className="pl-9" aria-label="Search live channels" /></div>
-          <div className="grid gap-2 sm:grid-cols-3">{live.map((s) => <button key={s.handle} className="rounded-xl border p-3 text-left text-sm hover:border-input"><span className="block font-semibold">{s.name}</span><span className="text-muted-foreground">{fmt(s.viewers)} watching</span></button>)}</div>
+          <div className="grid gap-2 sm:grid-cols-3">{live.map((s) => <button key={s.handle} className="rounded-xl border p-3 text-left text-sm hover:border-neon"><span className="block font-semibold">{s.name}</span><span className="text-muted-foreground">{fmt(s.viewers)} watching</span></button>)}</div>
           <div className="flex items-end gap-3"><div className="grid gap-2"><Label>Countdown</Label><Slider defaultValue={30} min={10} max={90} unit="s" /></div><Button className="ml-auto" onClick={saved("Raid starting")}><Rocket /> Start raid</Button></div>
         </CardContent>
       </Card>
@@ -290,7 +290,7 @@ export function AutoMod() {
       <Card>
         <CardHeader><CardTitle>Filter level: {levels[level]}</CardTitle><CardDescription>Applies to discrimination, harassment, sexual content and profanity.</CardDescription></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Filter level">{levels.map((l, i) => <button key={l} role="radio" aria-checked={level === i} onClick={() => setLevel(i)} className={cn("h-11 rounded-lg border text-sm", level === i ? "border-foreground bg-foreground font-semibold text-background" : "hover:border-input")}>{l}</button>)}</div>
+          <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Filter level">{levels.map((l, i) => <button key={l} role="radio" aria-checked={level === i} onClick={() => setLevel(i)} className={cn("h-11 rounded-lg border text-sm", level === i ? "border-neon bg-lime font-semibold text-lime-ink" : "hover:border-input")}>{l}</button>)}</div>
           <ToggleRow title="Hold messages with links" defaultChecked />
           <ToggleRow title="Block Zalgo and text art" body="Strips stacked accents and large character art that break chat layout." defaultChecked />
           <ToggleRow title="Block messages about a prediction’s winners or losers by name" body="Reduces harassment after results." defaultChecked />
@@ -368,7 +368,7 @@ export function Sponsorships() {
     <Page title="Sponsorships" description="Campaign offers from brands and operators. Accept an offer to unlock its assets and tracked links.">
       <div className="space-y-3">
         {studioSponsorships.map((s) => (
-          <Card key={s.campaign} className={s.status === "Offer" ? "" : ""}>
+          <Card key={s.campaign} className={s.status === "Offer" ? "border-neon/40" : ""}>
             <CardContent className="flex flex-wrap items-center gap-4 pt-5">
               <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{s.brand}</p><p className="font-display text-lg font-bold">{s.campaign}</p><p className="text-sm text-label">{s.deliverables}</p></div>
               <div className="text-right"><p className="font-mono text-xl font-bold">{fmtUSDC(s.fee)}</p><p className="text-xs text-muted-foreground">{s.ends}</p></div>
@@ -393,7 +393,7 @@ export function ChannelSettings() {
       <Tabs defaultValue="profile">
         <TabsList>{["Profile", "Branding", "About panels", "Schedule", "Socials", "Chat"].map((t) => <TabsTrigger key={t} value={t.toLowerCase()}>{t}</TabsTrigger>)}</TabsList>
         <TabsContent value="profile"><Card><CardContent className="grid gap-4 pt-5">
-          <div className="grid gap-2"><Label>Channel URL</Label><div className="flex items-center rounded-lg border border-input"><span className="pl-3 text-sm text-muted-foreground">balz.tv/</span><Input defaultValue={s.handle} className="border-0 pl-1 focus-visible:ring-0" /></div><p className="text-xs text-muted-foreground">Old links redirect after a rename. You can rename once every 60 days.</p></div>
+          <div className="grid gap-2"><Label>Channel URL</Label><div className="flex items-center rounded-lg border border-input"><span className="pl-3 text-sm text-muted-foreground">xp.live/</span><Input defaultValue={s.handle} className="border-0 pl-1 focus-visible:ring-0" /></div><p className="text-xs text-muted-foreground">Old links redirect after a rename. You can rename once every 60 days.</p></div>
           <div className="grid gap-2"><Label>Display name</Label><Input defaultValue={s.name} /></div>
           <div className="grid gap-2"><Label>Bio</Label><Textarea defaultValue={s.bio} maxLength={500} /></div>
           <div className="grid gap-2 sm:w-1/2"><Label>Stream language</Label><Input defaultValue={s.language} /></div>
@@ -412,7 +412,7 @@ export function ChannelSettings() {
 
 /* ── Help ───────────────────────────────────────────────────────────────── */
 export function StudioMessages() {
-  return <Page title="Messages" description="Whispers from viewers and other creators, and conversations with the balz creator team." wide><Inbox convos={studioConvos} thread={studioThread} kinds={["All", "Whispers", "Support"]} /></Page>;
+  return <Page title="Messages" description="Whispers from viewers and other creators, and conversations with the xp.live creator team." wide><Inbox convos={studioConvos} thread={studioThread} kinds={["All", "Whispers", "Support"]} /></Page>;
 }
 
 export function StudioSupport() {

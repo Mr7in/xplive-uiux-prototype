@@ -42,7 +42,7 @@ export default function Settings() {
             <CardContent className="grid gap-4">
               <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                 <div className="grid gap-2"><Label htmlFor="dn">Display name</Label><Input id="dn" defaultValue={user?.name} /></div>
-                <div className="grid gap-2"><Label htmlFor="hd">Username</Label><div className="flex items-center rounded-lg border border-input focus-within:ring-2 focus-within:ring-ring"><span className="pl-3 text-sm text-muted-foreground">balz.tv/</span><Input id="hd" defaultValue={user?.handle} className="border-0 pl-1 focus-visible:ring-0" /></div><p className="text-xs text-muted-foreground">3–25 letters, numbers, underscores or hyphens. Old names redirect.</p></div>
+                <div className="grid gap-2"><Label htmlFor="hd">Username</Label><div className="flex items-center rounded-lg border border-input focus-within:ring-2 focus-within:ring-ring"><span className="pl-3 text-sm text-muted-foreground">xp.live/</span><Input id="hd" defaultValue={user?.handle} className="border-0 pl-1 focus-visible:ring-0" /></div><p className="text-xs text-muted-foreground">3–25 letters, numbers, underscores or hyphens. Old names redirect.</p></div>
               </div>
               <div className="grid gap-2"><Label htmlFor="bio">Bio</Label><Textarea id="bio" placeholder="A short line about you" maxLength={300} /></div>
               <div className="grid gap-2 sm:w-1/2"><Label htmlFor="pr">Pronouns</Label><Input id="pr" placeholder="Optional" /></div>
@@ -70,7 +70,7 @@ export default function Settings() {
             <ToggleRow title="Show who I follow on my profile" defaultChecked />
             <ToggleRow title="Show my predictions in channel activity" body="Your name appears in the recent predictions list." defaultChecked />
             <ToggleRow title="Allow whispers from people I don’t follow" />
-            <ToggleRow title="Analytics cookies" body="Helps us improve balz. Off by default." />
+            <ToggleRow title="Analytics cookies" body="Helps us improve xp.live. Off by default." />
           </CardContent><CardFooter className="justify-between"><Button variant="secondary">Download my data</Button><Button variant="destructive-outline">Delete account</Button></CardFooter></Card>
         </TabsContent>
         <TabsContent value="limits">

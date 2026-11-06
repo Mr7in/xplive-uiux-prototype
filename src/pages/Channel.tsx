@@ -76,7 +76,7 @@ function Chat({ handle, live, creatorName }: { handle: string; live: boolean; cr
       </div>
       <ol ref={listRef} onScroll={(e) => { const el = e.currentTarget; setPaused(el.scrollHeight - el.scrollTop - el.clientHeight > 40); }} className="flex-1 space-y-1.5 overflow-y-auto px-4 py-3 text-sm" aria-live="polite" aria-relevant="additions">
         {msgs.map((m) => (
-          <li key={m.id} className={cn("chat-safe leading-relaxed", m.kind === "creator" && "rounded-md bg-secondary px-2 py-1")}>
+          <li key={m.id} className={cn("chat-safe leading-relaxed", m.kind === "creator" && "rounded-md bg-neon/[0.06] px-2 py-1")}>
             {m.kind === "creator" && <Badge variant="neon" className="mr-1.5 px-1 py-0 text-[10px]">Creator</Badge>}
             <span className="font-semibold" style={{ color: `color-mix(in oklab, ${m.color} 60%, hsl(var(--foreground)))` }}>{m.user}</span>
             <span className="text-label">: {m.text}</span>
@@ -170,11 +170,11 @@ function TipDialog({ open, onOpenChange, name }: { open: boolean; onOpenChange: 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Tip {name}</DialogTitle>
-          <DialogDescription>Paid in USDC from your balz wallet ({fmtUSDC(balance)} available). {name} keeps 95%. Your message shows in chat.</DialogDescription>
+          <DialogDescription>Paid in USDC from your xp.live wallet ({fmtUSDC(balance)} available). {name} keeps 95%. Your message shows in chat.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-4 gap-2" role="group" aria-label="Tip amount">
           {[1, 5, 10, 25].map((a) => (
-            <button key={a} onClick={() => setAmt(a)} aria-pressed={amt === a} className={cn("h-12 rounded-xl border font-mono font-bold", amt === a ? "border-foreground bg-foreground text-background" : "hover:border-input")}>{fmtUSDC(a)}</button>
+            <button key={a} onClick={() => setAmt(a)} aria-pressed={amt === a} className={cn("h-12 rounded-xl border font-mono font-bold", amt === a ? "border-neon bg-lime text-lime-ink" : "hover:border-input")}>{fmtUSDC(a)}</button>
           ))}
         </div>
         <Textarea value={msg} onChange={(e) => setMsg(e.target.value.slice(0, 140))} placeholder="Add a message (optional)" aria-label="Message" />

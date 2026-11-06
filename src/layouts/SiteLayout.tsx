@@ -118,7 +118,7 @@ function NotificationsMenu() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" aria-label={`Notifications, ${unread} unread`} className="relative">
           <Bell className="h-5 w-5" />
-          {unread > 0 && <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-foreground px-1 font-mono text-[10px] font-bold text-background">{unread}</span>}
+          {unread > 0 && <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-live px-1 font-mono text-[10px] font-bold text-white">{unread}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0">
@@ -129,7 +129,7 @@ function NotificationsMenu() {
         <ul className="max-h-96 overflow-y-auto">
           {notifications.slice(0, 6).map((n) => (
             <li key={n.id}>
-              <Link to={n.href} className={cn("flex gap-3 border-b px-4 py-3 text-sm last:border-0 hover:bg-secondary", !n.read && "bg-secondary/60")}>
+              <Link to={n.href} className={cn("flex gap-3 border-b px-4 py-3 text-sm last:border-0 hover:bg-secondary", !n.read && "bg-neon/[0.03]")}>
                 <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", n.read ? "bg-transparent" : "bg-lime")} />
                 <span className="min-w-0">
                   <span className="block">{n.text}</span>
@@ -243,7 +243,7 @@ export default function SiteLayout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-lime focus:px-3 focus:py-2 focus:text-lime-ink">Skip to content</a>
       <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b bg-background px-2 min-[360px]:gap-3 min-[360px]:px-3 md:px-5">
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setMenuOpen(true)}><Menu className="h-5 w-5" /></Button>
-        <Link to="/" aria-label="balz home" className="shrink-0 pt-1 min-[360px]:mr-2"><Logo size={32} /></Link>
+        <Link to="/" aria-label="xp.live home" className="shrink-0 pt-1 min-[360px]:mr-2"><Logo size={30} /></Link>
         <nav aria-label="Main" className="hidden items-center gap-0.5 md:flex">
           <CategoriesMenu />
           {navLinks.map((l) => (
@@ -267,9 +267,8 @@ export default function SiteLayout() {
             <>
               <ThemeToggle />
               {/* Log in is visible at every width: on phones it was the only way back into an existing account from the header. */}
-              {/* One lime button per view: the page owns it (hero CTA, ticket confirm), so the header stays outlined. */}
-              <Button variant="ghost" size="sm" className="px-2.5 text-foreground sm:px-3" onClick={() => auth.open("signin")}>Log in</Button>
-              <Button variant="outline" size="sm" className="border-foreground px-2.5 sm:px-3" onClick={() => auth.open("signup")}>Sign up</Button>
+              <Button variant="outline" size="sm" className="border-foreground/50 px-2.5 text-foreground hover:border-foreground sm:px-3" onClick={() => auth.open("signin")}>Log in</Button>
+              <Button size="sm" className="px-2.5 sm:px-3" onClick={() => auth.open("signup")}>Sign up</Button>
             </>
           )}
         </div>
@@ -283,7 +282,7 @@ export default function SiteLayout() {
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetContent side="left" className="w-full max-w-none gap-0 p-0 sm:w-[360px]">
             <SheetTitle className="sr-only">Menu</SheetTitle>
-            <div className="flex h-16 shrink-0 items-center border-b px-4"><Link to="/" onClick={() => setMenuOpen(false)}><Logo size={30} /></Link></div>
+            <div className="flex h-16 shrink-0 items-center border-b px-4"><Link to="/" onClick={() => setMenuOpen(false)}><Logo size={28} /></Link></div>
             <div className="flex-1 overflow-y-auto px-2 py-3">
               <ul className="border-b pb-3">
                 {[{ to: "/browse", label: "Browse" }, { to: "/markets", label: "Predictions" }, ...(user ? [{ to: "/wallet", label: "Wallet & predictions", note: `${fmtUSD2(balance)} USDC` }, { to: "/following", label: "Following" }] : []), { to: "/how-it-works", label: "How payouts work" }].map((l) => (
@@ -312,7 +311,7 @@ export default function SiteLayout() {
           <Outlet />
           <footer className="mt-16 border-t px-5 py-8 text-sm text-muted-foreground md:px-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3"><Logo size={31} /><span>© 2026 balz</span></div>
+              <div className="flex items-center gap-3"><Logo size={22} /><span>© 2026 xp.live</span></div>
               <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
                 <Link to="/support" className="hover:text-foreground">Help centre</Link>
                 <Link to="/legal/terms" className="hover:text-foreground">Terms</Link>

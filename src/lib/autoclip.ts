@@ -1,5 +1,5 @@
 /**
- * Auto-clipper (mock). When a creator settles a question, balz cuts the evidence clip itself:
+ * Auto-clipper (mock). When a creator settles a question, xp.live cuts the evidence clip itself:
  * it scans the stream from the moment the question opened to the creator's tap, finds the moment
  * and attaches a clip around it to the result. The creator only says YES or NO.
  *

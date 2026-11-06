@@ -69,7 +69,7 @@ export function RoleGate({ need, children }: { need: "creator" | "admin"; childr
         <div className="mt-6 flex justify-center gap-2">
           {!user && <Button onClick={() => auth.open("signin")}>Log in</Button>}
           {user && need === "creator" && <Button>Claim your channel</Button>}
-          <Button asChild variant="secondary"><Link to="/">Back to balz</Link></Button>
+          <Button asChild variant="secondary"><Link to="/">Back to xp.live</Link></Button>
         </div>
       </div>
     </div>
