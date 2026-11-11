@@ -232,7 +232,7 @@ function SideNav({ onNavigate, categories: showCats = true }: { onNavigate?: () 
 }
 
 export default function SiteLayout() {
-  const { user, balance, signOut } = useStore();
+  const { user, balance } = useStore();
   const unread = notifications.filter((n) => !n.read).length;
   const [menuOpen, setMenuOpen] = React.useState(false);
   const auth = useAuthDialog();
@@ -270,7 +270,8 @@ export default function SiteLayout() {
             </>
           ) : (
             <>
-              <span className="hidden md:contents"><ThemeToggle /></span>
+              {/* Logged out: the theme icon stays in the header at every width (no Settings page without an account). */}
+              <ThemeToggle />
               {/* Log in is visible at every width: on phones it was the only way back into an existing account from the header. */}
               <Button variant="outline" size="sm" className="border-foreground/50 px-2.5 text-foreground hover:border-foreground sm:px-3" onClick={() => auth.open("signin")}>Log in</Button>
               <Button size="sm" className="px-2.5 sm:px-3" onClick={() => auth.open("signup")}>Sign up</Button>
@@ -296,19 +297,15 @@ export default function SiteLayout() {
               </ul>
               <div className="pt-4"><SideNav onNavigate={() => setMenuOpen(false)} categories={false} /></div>
             </div>
-            <div className="shrink-0 border-t p-4">
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <span className="min-w-0 flex-1 truncate text-sm"><span className="block font-semibold">{user.name}</span><span className="text-muted-foreground">{user.email}</span></span>
-                  <Button variant="outline" onClick={() => { setMenuOpen(false); signOut(); }}>Sign out</Button>
-                </div>
-              ) : (
+            {/* Signed in: sign out lives only in the avatar menu (top right). */}
+            {!user && (
+              <div className="shrink-0 border-t p-4">
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" size="lg" className="border-foreground/50" onClick={() => { setMenuOpen(false); auth.open("signin"); }}>Log in</Button>
                   <Button size="lg" onClick={() => { setMenuOpen(false); auth.open("signup"); }}>Sign up</Button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
 
