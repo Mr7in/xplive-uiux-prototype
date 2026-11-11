@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { usePageMeta } from "@/lib/meta";
 import { useStore } from "@/lib/store";
 import { PageHeader } from "@/components/xp";
+import { ThemeSegmented } from "@/lib/theme";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,10 @@ export default function Settings() {
               <div className="grid gap-2 sm:w-1/2"><Label htmlFor="pr">Pronouns</Label><Input id="pr" placeholder="Optional" /></div>
             </CardContent>
             <CardFooter className="justify-end"><Button onClick={save}>Save profile</Button></CardFooter>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle>Appearance</CardTitle><CardDescription>Dark is the default. Device follows your phone or computer setting. Saved on this browser.</CardDescription></CardHeader>
+            <CardContent className="max-w-md"><ThemeSegmented /></CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="security" className="space-y-5">

@@ -196,7 +196,7 @@ Admin (`/admin`): overview, all questions, question review/dispute decision (`/a
 
 - **Home:** the "Predict live streams" hero, its description and buttons are gone. Desktop shows a small "Live streams" heading with one line; phones open straight on the featured stream (heading kept for screen readers). Proof stats moved off the home page (they live on `/markets`).
 - **Chat first:** the rail beside the stream (home and channel) opens on **Chat**. The open question is pinned at the top of chat (`components/StreamChat.tsx`, `PinnedQuestion`); tapping it opens the Question tab. Channel tabs: Chat / Live question / Past questions.
-- **Phone header:** menu, logo, search, wallet balance, avatar. Theme, notifications and messages moved into the menu (a dot on the menu icon flags unread notifications). Header is 56 px on phones.
+- **Phone header:** menu, logo, search, wallet balance, avatar. Notifications and messages moved into the menu; the theme picker lives in Settings > Profile > Appearance (a dot on the menu icon flags unread notifications). Header is 56 px on phones.
 - **Phone home:** edge-to-edge video first, one-line open question under it, followed channels as an avatar row, 4 live channels, 3 predictions. Categories, Closing soon, Just settled, creator suggestions and offline follows are desktop only.
 - **Phone channel:** edge-to-edge player that sticks under the header while you scroll chat; compact channel header (share moves into the "more" menu).
 - **Live grid:** "Open questions only" is off by default and hidden on phones.

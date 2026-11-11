@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -64,3 +65,24 @@ export function ThemeToggle() {
     </DropdownMenu>
   );
 }
+
+/** Segmented theme picker, used in Settings > Profile (Appearance). */
+export function ThemeSegmented() {
+  const { mode, setMode } = useTheme();
+  const items: { m: ThemeMode; label: string; Icon: typeof Sun }[] = [
+    { m: "dark", label: "Dark", Icon: Moon },
+    { m: "light", label: "Light", Icon: Sun },
+    { m: "system", label: "Device", Icon: Monitor },
+  ];
+  return (
+    <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-1 rounded-xl border bg-surface p-1">
+      {items.map(({ m, label, Icon }) => (
+        <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+          className={cn("inline-flex h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors", mode === m ? "bg-foreground text-background" : "text-label hover:text-foreground")}>
+          <Icon className="h-4 w-4" /> {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+

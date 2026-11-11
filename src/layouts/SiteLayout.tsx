@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, CircleHelp, Clapperboard, Compass, LogOut, Menu, MessageSquare, Monitor, Moon, Search, Settings, Shield, Sun, Plus, Trophy, User, Wallet, LifeBuoy, History } from "lucide-react";
+import { Bell, ChevronDown, CircleHelp, Clapperboard, Compass, LogOut, Menu, MessageSquare, Search, Settings, Shield, Plus, Trophy, User, Wallet, LifeBuoy, History } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { streamers, streamerByHandle } from "@/data/streamers";
 import { ChannelAvatar, categoryStats } from "@/components/xp";
 import { cn, compact, fmtUSD2 } from "@/lib/utils";
 import { NETWORK } from "@/lib/chain";
-import { ThemeToggle, useTheme, type ThemeMode } from "@/lib/theme";
+import { ThemeToggle } from "@/lib/theme";
 import { useWalletUI } from "@/components/WalletDialogs";
 import { notifications } from "@/data/viewer";
 import { SignInDialog, useAuthDialog } from "@/components/auth";
@@ -145,26 +145,6 @@ function NotificationsMenu() {
   );
 }
 
-/** Theme picker for the phone menu: the header toggle moves here below md. */
-function ThemeSegmented() {
-  const { mode, setMode } = useTheme();
-  const items: { m: ThemeMode; label: string; Icon: typeof Sun }[] = [
-    { m: "dark", label: "Dark", Icon: Moon },
-    { m: "light", label: "Light", Icon: Sun },
-    { m: "system", label: "Device", Icon: Monitor },
-  ];
-  return (
-    <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-1 rounded-xl border bg-surface p-1">
-      {items.map(({ m, label, Icon }) => (
-        <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-          className={cn("inline-flex h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors", mode === m ? "bg-foreground text-background" : "text-label hover:text-foreground")}>
-          <Icon className="h-4 w-4" /> {label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function AccountMenu() {
   const { user, signOut } = useStore();
   const nav = useNavigate();
@@ -283,7 +263,7 @@ export default function SiteLayout() {
               {user.role === "creator" && <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/studio"><Clapperboard /> Studio</Link></Button>}
               {user.role === "admin" && <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/admin"><Shield /> Admin</Link></Button>}
               <BalancePill balance={balance} onAdd={() => walletUI.open("add")} />
-              {/* Phones keep only search, wallet and avatar; theme and notifications live in the menu. */}
+              {/* Phones keep only search, wallet and avatar; notifications live in the menu, theme in Settings. */}
               <span className="hidden md:contents"><ThemeToggle /><NotificationsMenu /></span>
               <Button asChild variant="ghost" size="icon" aria-label="Messages" className="hidden sm:inline-flex"><Link to="/messages"><MessageSquare className="h-5 w-5" /></Link></Button>
               <AccountMenu />
@@ -314,7 +294,6 @@ export default function SiteLayout() {
                   <li key={l.to}><NavLink to={l.to} onClick={() => setMenuOpen(false)} className={({ isActive }) => cn("flex min-h-[52px] items-center justify-between rounded-lg px-3 font-display text-lg font-semibold hover:bg-secondary", isActive ? "text-foreground" : "text-label")}>{l.label}{"note" in l && <span className="font-mono text-sm text-label">{l.note}</span>}</NavLink></li>
                 ))}
               </ul>
-              <div className="border-b px-1 py-4"><p className="mb-2 px-2 text-xs font-semibold text-muted-foreground">Theme</p><ThemeSegmented /></div>
               <div className="pt-4"><SideNav onNavigate={() => setMenuOpen(false)} categories={false} /></div>
             </div>
             <div className="shrink-0 border-t p-4">
