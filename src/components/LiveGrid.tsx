@@ -13,11 +13,11 @@ import { cn } from "@/lib/utils";
  * on by default for signed-in users who have predicted before.
  */
 export function LiveGrid({ limit, title = "Live now", id, query = "", group = "All" }: { limit?: number; title?: string; id?: string; query?: string; group?: string }) {
-  const { user, positions, markets } = useStore();
+  const { markets } = useStore();
   const [game, setGame] = React.useState<string>("all");
-  const [onlyOpen, setOnlyOpen] = React.useState(() => !!user && positions.length > 0);
+  // Streaming first: every live channel shows by default; the question filter is opt-in.
+  const [onlyOpen, setOnlyOpen] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
-  React.useEffect(() => { setOnlyOpen(!!user && positions.length > 0); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const live = streamers.filter((s) => s.live && (group === "All" || categories.find(c => c.slug === s.category)?.group === group) && (s.name + " " + s.title).toLowerCase().includes(query.toLowerCase())).sort((a, b) => b.viewers - a.viewers);
   const games = categories
@@ -32,17 +32,17 @@ export function LiveGrid({ limit, title = "Live now", id, query = "", group = "A
   return (
     <section id={id} aria-labelledby="live-grid-title">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 id="live-grid-title" className="font-display text-xl font-bold">{title} <span className="ml-1 font-mono text-sm font-normal text-muted-foreground">{list.length}</span></h2>
-        <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+        <h2 id="live-grid-title" className="font-display text-lg font-bold md:text-xl">{title} <span className="ml-1 font-mono text-sm font-normal text-muted-foreground">{list.length}</span></h2>
+        <label className="hidden cursor-pointer items-center gap-2 text-sm sm:inline-flex">
           <Switch checked={onlyOpen} onCheckedChange={setOnlyOpen} aria-label="Open questions only" />
           Open questions only <span className="font-mono text-xs text-muted-foreground">{openCount}</span>
         </label>
       </div>
-      <div className="-mx-4 mb-5 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Filter by game">
+      <div className="-mx-4 mb-4 overflow-x-auto md:mb-5 px-4 md:mx-0 md:px-0" role="group" aria-label="Filter by game">
         <div className="flex w-max gap-2">
           {[{ slug: "all", name: "All games" }, ...games].map((c) => (
             <button key={c.slug} type="button" aria-pressed={game === c.slug} onClick={() => setGame(c.slug)}
-              className={cn("h-9 whitespace-nowrap rounded-full border px-3.5 text-sm transition-colors", game === c.slug ? "border-foreground bg-foreground font-semibold text-background" : "text-label hover:border-input hover:text-foreground")}>
+              className={cn("h-8 md:h-9 whitespace-nowrap rounded-full border px-3.5 text-sm transition-colors", game === c.slug ? "border-foreground bg-foreground font-semibold text-background" : "text-label hover:border-input hover:text-foreground")}>
               {c.name}
             </button>
           ))}

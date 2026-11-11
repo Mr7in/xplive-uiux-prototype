@@ -1,99 +1,32 @@
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Bell, Check, Flag, Heart, Maximize, Minimize, MoreHorizontal, Pause, Play, Scissors, Settings2, Share2, Smile, Volume2, VolumeX, RectangleHorizontal, Gift, CalendarClock, ShieldCheck } from "lucide-react";
+import { Bell, Check, Flag, Heart, Maximize, Minimize, MoreHorizontal, Pause, Play, Scissors, Settings2, Share2, Volume2, VolumeX, RectangleHorizontal, Gift, CalendarClock } from "lucide-react";
 import { usePageMeta } from "@/lib/meta";
 import { useStore } from "@/lib/store";
 import { streamerByHandle, streamers, type Streamer } from "@/data/streamers";
 import { categoryBySlug } from "@/data/categories";
-import { chatLines, chatUsers } from "@/data/viewer";
 import { LivePlayer, type PlayerHandle } from "@/components/LivePlayer";
 import { videoFor } from "@/data/videos";
 import { ChannelAvatar, LiveBadge, MarketStatus, StreamThumb, Verified, EmptyState } from "@/components/xp";
 import { PredictPanel } from "@/components/PredictPanel";
+import { PinnedQuestion, StreamChat } from "@/components/StreamChat";
+import { useMedia } from "@/lib/useMedia";
 import { useRequireAuth } from "@/components/auth";
 import { useWalletUI } from "@/components/WalletDialogs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { cn, compact, fmt, fmtUSDC, sanitizeChat, timeLeft } from "@/lib/utils";
+import { cn, compact, fmt, fmtUSDC, timeLeft } from "@/lib/utils";
 import { closedAt, when } from "@/lib/ledger";
 import { ResolutionBlock, SideText, TrackRecordGrid, TrackRecordLine, positionOutcome } from "@/components/trust";
 import { pool, type Market } from "@/data/markets";
 import NotFound from "./NotFound";
 
-interface ChatMsg { id: number; user: string; color: string; text: string; kind?: "event" | "creator" | "me" }
-
-function useChat(handle: string, live: boolean, creatorName: string) {
-  const [msgs, setMsgs] = React.useState<ChatMsg[]>(() =>
-    Array.from({ length: 14 }).map((_, i) => {
-      const u = chatUsers[(i * 4 + handle.length) % chatUsers.length];
-      return { id: i, user: u.name, color: u.color, text: chatLines[(i * 7 + handle.length * 3) % chatLines.length] };
-    })
-  );
-  React.useEffect(() => {
-    setMsgs((m) => m.some((x) => x.id === 999) ? m : [...m, { id: 999, user: creatorName, color: "#c8ff00", text: "welcome in everyone, predictions open on stream", kind: "creator" }]);
-    if (!live) return;
-    let n = 1000;
-    const t = window.setInterval(() => {
-      const u = chatUsers[Math.floor(Math.random() * chatUsers.length)];
-      setMsgs((m) => [...m.slice(-80), { id: n++, user: u.name, color: u.color, text: chatLines[Math.floor(Math.random() * chatLines.length)] }]);
-    }, 2200);
-    return () => window.clearInterval(t);
-  }, [handle, live, creatorName]);
-  return [msgs, setMsgs] as const;
-}
-
-function Chat({ handle, live, creatorName }: { handle: string; live: boolean; creatorName: string }) {
-  const { user } = useStore();
-  const guard = useRequireAuth();
-  const [msgs, setMsgs] = useChat(handle, live, creatorName);
-  const [text, setText] = React.useState("");
-  const [paused, setPaused] = React.useState(false);
-  const listRef = React.useRef<HTMLOListElement>(null);
-  React.useEffect(() => {
-    const el = listRef.current;
-    if (el && !paused) el.scrollTop = el.scrollHeight;
-  }, [msgs, paused]);
-  const send = (e: React.FormEvent) => {
-    e.preventDefault();
-    guard(() => {
-      const clean = sanitizeChat(text.trim());
-      if (!clean) return;
-      setMsgs((m) => [...m, { id: Date.now(), user: user!.name, color: "#c8ff00", text: clean, kind: "me" }]);
-      setText("");
-    });
-  };
-  return (
-    <section aria-label="Stream chat" className="flex h-[560px] flex-col overflow-hidden rounded-2xl border bg-card">
-      <div className="flex items-center justify-between border-b px-4 py-2.5">
-        <h2 className="font-display text-sm font-semibold">Stream chat</h2>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" /> AutoMod on</span>
-      </div>
-      <ol ref={listRef} onScroll={(e) => { const el = e.currentTarget; setPaused(el.scrollHeight - el.scrollTop - el.clientHeight > 40); }} className="flex-1 space-y-1.5 overflow-y-auto px-4 py-3 text-sm" aria-live="polite" aria-relevant="additions">
-        {msgs.map((m) => (
-          <li key={m.id} className={cn("chat-safe leading-relaxed", m.kind === "creator" && "rounded-md bg-neon/[0.06] px-2 py-1")}>
-            {m.kind === "creator" && <Badge variant="neon" className="mr-1.5 px-1 py-0 text-[10px]">Creator</Badge>}
-            <span className="font-semibold" style={{ color: `color-mix(in oklab, ${m.color} 60%, hsl(var(--foreground)))` }}>{m.user}</span>
-            <span className="text-label">: {m.text}</span>
-          </li>
-        ))}
-      </ol>
-      {paused && <button onClick={() => setPaused(false)} className="mx-4 mb-2 rounded-md bg-secondary py-1.5 text-xs font-semibold">Chat paused · jump to latest</button>}
-      <form onSubmit={send} className="flex gap-2 border-t p-3">
-        <Input value={text} onChange={(e) => setText(e.target.value)} onFocus={() => !user && guard(() => {})} maxLength={300} placeholder={user ? (live ? "Send a message" : "Chat is open while offline") : "Log in to chat"} aria-label="Chat message" />
-        <Button type="button" variant="ghost" size="icon" aria-label="Emotes"><Smile /></Button>
-        <Button type="submit" disabled={!text.trim()}>Chat</Button>
-      </form>
-    </section>
-  );
-}
-
-function Player({ s, theatre, onTheatre }: { s: NonNullable<ReturnType<typeof streamerByHandle>>; theatre: boolean; onTheatre: () => void }) {
+function Player({ s, theatre, onTheatre, className }: { s: NonNullable<ReturnType<typeof streamerByHandle>>; theatre: boolean; onTheatre: () => void; className?: string }) {
   const [playing, setPlaying] = React.useState(true);
   const [muted, setMuted] = React.useState(true);
   const [full, setFull] = React.useState(false);
@@ -118,7 +51,7 @@ function Player({ s, theatre, onTheatre }: { s: NonNullable<ReturnType<typeof st
     }
   };
   return (
-    <div ref={box} className={cn("group relative overflow-hidden bg-black", full ? "flex items-center justify-center" : theatre ? "rounded-none" : "rounded-2xl")}>
+    <div ref={box} className={cn("group relative overflow-hidden bg-black", full ? "flex items-center justify-center" : theatre ? "rounded-none" : "rounded-2xl", className)}>
       <LivePlayer ref={player} s={s} className={cn("rounded-none", (full || theatre) && "mx-auto max-h-[calc(100vh-4rem)] w-auto max-w-full", full && "max-h-screen")} onPlaying={setPlaying}>
         {!s.live && (
           <span className="absolute inset-0 grid place-items-center bg-background/85">
@@ -186,18 +119,6 @@ function TipDialog({ open, onOpenChange, name }: { open: boolean; onOpenChange: 
       </DialogContent>
     </Dialog>
   );
-}
-
-function useWide() {
-  const q = "(min-width: 1280px)";
-  const [wide, setWide] = React.useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
-  React.useEffect(() => {
-    const mq = window.matchMedia(q);
-    const on = () => setWide(mq.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return wide;
 }
 
 /** Live question tab when nothing is open: never a blank rail. */
@@ -290,18 +211,23 @@ function PastQuestions({ s }: { s: Streamer }) {
   );
 }
 
+/** Right rail: chat first (streaming first), the live question one tap away and pinned in chat while open. */
 function Rail({ s, active }: { s: Streamer; active?: Market }) {
-  const [tab, setTab] = React.useState("question");
+  const [tab, setTab] = React.useState("chat");
+  const open = active?.status === "open";
   return (
     <Tabs value={tab} onValueChange={setTab}>
       <TabsList className="mb-3 border-b-0">
-        <TabsTrigger value="question">Live question{active?.status === "open" && <span className="h-1.5 w-1.5 rounded-full bg-live" aria-label="open" />}</TabsTrigger>
-        <TabsTrigger value="past">Past questions</TabsTrigger>
         <TabsTrigger value="chat">Chat</TabsTrigger>
+        <TabsTrigger value="question">Live question{open && <span className="h-1.5 w-1.5 rounded-full bg-live" aria-label="open" />}</TabsTrigger>
+        <TabsTrigger value="past">Past questions</TabsTrigger>
       </TabsList>
+      <TabsContent value="chat" className="pt-0" forceMount hidden={tab !== "chat"}>
+        <StreamChat handle={s.handle} live={s.live} creatorName={s.name} className="h-[min(480px,62vh)] md:h-[560px] xl:h-[calc(100vh-11rem)] xl:max-h-[760px]"
+          pinned={open && active ? <PinnedQuestion m={active} onOpen={() => setTab("question")} /> : undefined} />
+      </TabsContent>
       <TabsContent value="question" className="pt-0">{active ? <PredictPanel m={active} /> : <NoQuestion s={s} />}</TabsContent>
       <TabsContent value="past" className="pt-0"><PastQuestions s={s} /></TabsContent>
-      <TabsContent value="chat" className="pt-0" forceMount hidden={tab !== "chat"}><Chat handle={s.handle} live={s.live} creatorName={s.name} /></TabsContent>
     </Tabs>
   );
 }
@@ -313,7 +239,7 @@ export default function Channel() {
   usePageMeta(s ? `${s.name}${s.live ? " is live" : ""}` : undefined, s ? `${s.title} · ${cat?.name}. ${s.bio}` : undefined);
   const { markets, isFollowing, toggleFollow, user } = useStore();
   const guard = useRequireAuth();
-  const wide = useWide();
+  const wide = useMedia("(min-width: 1280px)");
   const [tip, setTip] = React.useState(false);
   const [theatre, setTheatre] = React.useState(false);
   if (!s || !cat) return <NotFound />;
@@ -325,35 +251,39 @@ export default function Channel() {
   const isOwner = user?.channel === s.handle;
   const similar = streamers.filter((x) => x.category === s.category && x.handle !== s.handle);
   const runs = mine.length > 0;
+  const share = () => { try { navigator.clipboard?.writeText(window.location.href); } catch { /* clipboard blocked */ } toast("Link copied"); };
 
   const header = (
-    <div className="flex flex-wrap items-start gap-4">
-      <ChannelAvatar s={s} size={64} />
-      <div className="min-w-[12rem] flex-1">
-        <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold">{s.name} {s.verified && <Verified />}</h1>
-        <p className="mt-0.5 font-medium text-label">{s.title}</p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-3 md:items-start md:gap-4">
+      <span className="hidden md:block"><ChannelAvatar s={s} size={64} /></span>
+      <span className="md:hidden"><ChannelAvatar s={s} size={44} /></span>
+      <div className="min-w-0 flex-1 md:min-w-[12rem]">
+        <h1 className="flex items-center gap-2 font-display text-lg font-extrabold md:text-2xl">{s.name} {s.verified && <Verified />}</h1>
+        <p className="line-clamp-1 text-sm font-medium text-label md:mt-0.5 md:text-base">{s.title}</p>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:mt-1 md:text-sm">
           <Link to={`/category/${cat.slug}`} className="font-semibold text-foreground hover:underline">{cat.name}</Link>
           {s.live && <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-live" /> <span className="font-mono tabular">{fmt(s.viewers)}</span> watching</span>}
-          <span>{compact(s.followers)} followers</span>
+          <span className="hidden md:inline">{compact(s.followers)} followers</span>
         </p>
-        {runs && <TrackRecordLine handle={s.handle} className="mt-1.5 text-xs" />}
+        {runs && <TrackRecordLine handle={s.handle} className="mt-1.5 hidden text-xs md:block" />}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex shrink-0 gap-1.5 md:gap-2">
         {isOwner ? (
           <Button asChild variant="outline"><Link to="/studio">Open Creator Studio</Link></Button>
         ) : (
           <>
-            <Button variant="outline" onClick={() => guard(() => { toggleFollow(s.handle); toast(following ? `Unfollowed ${s.name}` : `Following ${s.name}`); })}>
-              {following ? <><Heart fill="currentColor" /> Following</> : <><Heart /> Follow</>}
+            <Button variant={following ? "outline" : "default"} className={cn("max-md:h-9", following ? "max-md:w-9 max-md:px-0" : "max-md:px-3")} aria-label={following ? `Unfollow ${s.name}` : `Follow ${s.name}`} aria-pressed={following}
+              onClick={() => guard(() => { toggleFollow(s.handle); toast(following ? `Unfollowed ${s.name}` : `Following ${s.name}`); })}>
+              {following ? <><Heart fill="currentColor" /> <span className="hidden md:inline">Following</span></> : <><Heart /> Follow</>}
             </Button>
-            <Button variant="outline" onClick={() => guard(() => setTip(true))}><Gift /> Tip</Button>
+            <Button variant="outline" className="max-md:h-9 max-md:w-9 max-md:px-0" aria-label="Tip" onClick={() => guard(() => setTip(true))}><Gift /> <span className="hidden md:inline">Tip</span></Button>
           </>
         )}
-        <Button variant="ghost" size="icon" aria-label="Share" onClick={() => { try { navigator.clipboard?.writeText(window.location.href); } catch { /* clipboard blocked */ } toast("Link copied"); }}><Share2 /></Button>
+        <Button variant="ghost" size="icon" aria-label="Share" className="hidden md:inline-flex" onClick={share}><Share2 /></Button>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="More"><MoreHorizontal /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="max-md:h-9 max-md:w-9" aria-label="More"><MoreHorizontal /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem className="md:hidden" onSelect={share}><Share2 /> Share</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => guard(() => toast("Report sent", { description: "Our safety team reviews reports within 24 hours." }))}><Flag /> Report channel</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => guard(() => toast("Go-live notifications on", { description: "Preview: no notification is actually sent." }))}><Bell /> Go-live notifications</DropdownMenuItem>
           </DropdownMenuContent>
@@ -398,8 +328,8 @@ export default function Channel() {
     <div className={cn("mx-auto px-3 py-4 md:px-5", theatre && wide ? "max-w-none px-0 py-0 md:px-0" : "max-w-[1800px]")}>
       {theatre && wide && <Player s={s} theatre onTheatre={() => setTheatre(false)} />}
       <div className={cn("grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]", theatre && wide && "px-5 py-4")}>
-        <div className="min-w-0 space-y-5">
-          {!(theatre && wide) && <Player s={s} theatre={false} onTheatre={() => setTheatre(true)} />}
+        <div className="min-w-0 space-y-4 md:space-y-5">
+          {!(theatre && wide) && <Player s={s} theatre={false} onTheatre={() => setTheatre(true)} className="max-md:sticky max-md:top-14 max-md:z-30 max-md:-mx-3 max-md:-mt-4 max-md:rounded-none" />}
           {header}
           {!wide && rail}
           {lower}

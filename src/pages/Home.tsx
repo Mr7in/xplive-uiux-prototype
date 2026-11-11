@@ -6,10 +6,13 @@ import { usePageMeta } from "@/lib/meta";
 import { streamers, streamerByHandle } from "@/data/streamers";
 import { categories, categoryBySlug } from "@/data/categories";
 import { pool, yesPct, type Market } from "@/data/markets";
-import { ledgerStats, paidOut, winners } from "@/lib/ledger";
+import { paidOut, winners } from "@/lib/ledger";
 import { estimateBack } from "@/components/trust";
 import { LiveGrid } from "@/components/LiveGrid";
 import { LivePlayer } from "@/components/LivePlayer";
+import { PinnedQuestion, StreamChat } from "@/components/StreamChat";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMedia } from "@/lib/useMedia";
 import { CategoryCard, ChannelAvatar, LiveBadge, MarketCard, MarketStatus, SectionHeader, SplitBar, StreamCard, ViewerCount, Verified, categoryStats } from "@/components/xp";
 import { Button } from "@/components/ui/button";
 import { cn, compact, compactUSDC, fmt, fmtUSDC, timeLeft } from "@/lib/utils";
@@ -75,41 +78,34 @@ function QuestionLifecycle({ m }: { m: Market }) {
   );
 }
 
+/** Streaming first: the featured live stream leads, chat sits beside it, the question is one tab away. */
 function Hero() {
-  const { markets, user } = useStore();
-  const st = ledgerStats(markets);
+  const { markets } = useStore();
   const featured = React.useMemo(
     () => streamers.filter((s) => s.live && markets.some((m) => m.handle === s.handle && m.status === "open" && (m.secondsLeft ?? 0) > 240)).sort((a, b) => b.viewers - a.viewers).slice(0, 5),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
   const [i, setI] = React.useState(0);
+  const [tab, setTab] = React.useState("chat");
   const s = featured[i];
   const m = markets.find((x) => x.handle === s.handle && x.status === "open") ?? markets.find((x) => x.handle === s.handle)!;
+  const open = m.status === "open";
   const cat = categoryBySlug(s.category)!;
   const go = (d: number) => setI((v) => (v + d + featured.length) % featured.length);
-  const startHref = user ? `/${s.handle}` : "/signup";
   return (
-    <section aria-labelledby="hero-title" className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
-        <div className="max-w-2xl">
-          <h1 id="hero-title" className="font-display text-4xl font-extrabold leading-[1.05] md:text-6xl">Predict live streams</h1>
-          <p className="mt-3 max-w-xl text-lg text-label">Watch live creators and back YES or NO on what happens next. Results are settled by the creator, with evidence.</p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild size="lg"><Link to={startHref}>Start predicting</Link></Button>
-            <Button asChild size="lg" variant="outline"><Link to="/how-it-works">How payouts work</Link></Button>
-          </div>
-        </div>
-        <Link to="/markets" className="text-sm text-label hover:text-foreground md:text-right">
-          <span className="font-mono tabular text-foreground">{st.settledThisWeek}</span> questions settled this week<br className="hidden md:block" /><span className="md:hidden"> · </span>median payout <span className="font-mono tabular text-foreground">{st.medianPayoutMin} min</span> after the result
-        </Link>
+    <section aria-labelledby="hero-title" className="grid gap-4">
+      {/* Phones: no heading or description, the stream is the first thing on screen (heading stays for screen readers). */}
+      <div className="max-md:sr-only">
+        <h1 id="hero-title" className="font-display text-2xl font-extrabold">Live streams</h1>
+        <p className="mt-1 hidden text-label md:block">Watch creators live, chat along and predict what happens next.</p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="relative overflow-hidden rounded-2xl border bg-black">
+        <div className="relative -mx-4 overflow-hidden border-b bg-black md:mx-0 md:rounded-2xl md:border">
           <Link to={`/${s.handle}`} className="block" aria-label={`Watch ${s.name}`}>
             <LivePlayer key={s.handle} s={s} className="rounded-none">
-              <span className="absolute left-4 top-4 flex gap-2"><LiveBadge /><span className="rounded-md bg-black/80 px-2 py-0.5 text-white"><ViewerCount n={s.viewers} className="text-xs" /></span></span>
+              <span className="absolute left-3 top-3 flex gap-2 md:left-4 md:top-4"><LiveBadge /><span className="rounded-md bg-black/80 px-2 py-0.5 text-white"><ViewerCount n={s.viewers} className="text-xs" /></span></span>
             </LivePlayer>
           </Link>
           <div className="flex items-center gap-3 border-t bg-card px-4 py-3">
@@ -123,8 +119,30 @@ function Hero() {
               <Button size="icon-sm" variant="outline" onClick={() => go(1)} aria-label="Next featured channel"><ChevronRight /></Button>
             </div>
           </div>
+          {/* Below xl there is no side rail: the open question is a single quiet line under the stream. */}
+          {open && (
+            <Link to={`/${s.handle}`} className="flex items-center gap-2.5 border-t bg-card px-4 py-2.5 text-sm hover:bg-surface xl:hidden">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-live" aria-hidden />
+              <span className="min-w-0 flex-1 truncate"><span className="text-label">Question open · </span>{m.question}</span>
+              <span className="shrink-0 font-mono text-xs tabular text-label">{timeLeft(m.secondsLeft ?? 0)}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-label" />
+            </Link>
+          )}
         </div>
-        <QuestionLifecycle m={m} />
+
+        <div className="relative hidden xl:block">
+          <Tabs value={tab} onValueChange={setTab} className="absolute inset-0 flex flex-col">
+            <TabsList className="mb-3 shrink-0 border-b-0">
+              <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="question">Question{open && <span className="h-1.5 w-1.5 rounded-full bg-live" aria-label="open" />}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="chat" className="min-h-0 flex-1 pt-0" forceMount hidden={tab !== "chat"}>
+              <StreamChat key={s.handle} handle={s.handle} live={s.live} creatorName={s.name} className="h-full"
+                pinned={open ? <PinnedQuestion m={m} onOpen={() => setTab("question")} /> : undefined} />
+            </TabsContent>
+            <TabsContent value="question" className="min-h-0 flex-1 pt-0"><QuestionLifecycle m={m} /></TabsContent>
+          </Tabs>
+        </div>
       </div>
     </section>
   );
@@ -133,6 +151,7 @@ function Hero() {
 export default function Home() {
   usePageMeta(undefined);
   const { user, follows, markets } = useStore();
+  const phone = useMedia("(max-width: 767px)");
   const followed = user ? (follows[user.id] ?? []).map((h) => streamerByHandle(h)!).filter(Boolean) : [];
   const followedLive = followed.filter((s) => s.live).sort((a, b) => b.viewers - a.viewers);
   const followedOffline = followed.filter((s) => !s.live);
@@ -145,36 +164,47 @@ export default function Home() {
   const suggested = streamers.filter((s) => !followed.includes(s)).sort((a, b) => b.followers - a.followers).slice(0, 6);
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-12 px-4 py-6 md:px-8">
+    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-4 pb-6 md:gap-12 md:px-8 md:pt-6">
       <Hero />
 
       {user && followedLive.length > 0 && (
         <section>
           <SectionHeader title="Live channels you follow" href="/following" count={followedLive.length} />
-          <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {/* Phones: a compact avatar row instead of four full-width cards. */}
+          <ul className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1 md:hidden">
+            {followedLive.map((s) => (
+              <li key={s.handle} className="shrink-0">
+                <Link to={`/${s.handle}`} className="flex w-16 flex-col items-center gap-1.5 text-center">
+                  <ChannelAvatar s={s} size={56} />
+                  <span className="w-full truncate text-xs font-semibold">{s.name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 md:grid lg:grid-cols-3 xl:grid-cols-4">
             {followedLive.slice(0, 4).map((s) => <StreamCard key={s.handle} s={s} />)}
           </div>
         </section>
       )}
 
-
-      <LiveGrid limit={8} />
+      <LiveGrid limit={phone ? 4 : 8} />
 
       <section>
         <SectionHeader title="Top predictions right now" href="/markets" linkLabel="All predictions" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {topMarkets.map((m) => <MarketCard key={m.id} m={m} />)}
+          {topMarkets.slice(0, phone ? 3 : 8).map((m) => <MarketCard key={m.id} m={m} />)}
         </div>
       </section>
 
-      <section>
+      {/* Desktop only: on phones Browse covers categories, and channel pages cover closing and settled questions. */}
+      <section className="hidden md:block">
         <SectionHeader title="Categories we think you’ll like" href="/browse" linkLabel="Browse all 20" />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
           {topCats.map((c) => <CategoryCard key={c.slug} c={c} />)}
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 [&>*]:min-w-0">
+      <div className="hidden grid-cols-1 gap-8 md:grid lg:grid-cols-2 [&>*]:min-w-0">
         <section>
           <SectionHeader title="Closing soon" href="/markets" />
           <ul className="divide-y rounded-xl border">
@@ -211,7 +241,7 @@ export default function Home() {
         </section>
       </div>
 
-      <section>
+      <section className="hidden md:block">
         <SectionHeader title={user ? "Creators you might like" : "Popular creators"} />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {suggested.map((s) => (
@@ -228,7 +258,7 @@ export default function Home() {
       </section>
 
       {user && followedOffline.length > 0 && (
-        <section>
+        <section className="hidden md:block">
           <SectionHeader title="Offline channels you follow" href="/following" />
           <div className="flex flex-wrap gap-3">
             {followedOffline.map((s) => (

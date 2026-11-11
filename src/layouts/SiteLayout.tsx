@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, CircleHelp, Clapperboard, Compass, LogOut, Menu, MessageSquare, Search, Settings, Shield, Plus, Trophy, User, Wallet, LifeBuoy, History } from "lucide-react";
+import { Bell, ChevronDown, CircleHelp, Clapperboard, Compass, LogOut, Menu, MessageSquare, Monitor, Moon, Search, Settings, Shield, Sun, Plus, Trophy, User, Wallet, LifeBuoy, History } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { streamers, streamerByHandle } from "@/data/streamers";
 import { ChannelAvatar, categoryStats } from "@/components/xp";
 import { cn, compact, fmtUSD2 } from "@/lib/utils";
 import { NETWORK } from "@/lib/chain";
-import { ThemeToggle } from "@/lib/theme";
+import { ThemeToggle, useTheme, type ThemeMode } from "@/lib/theme";
 import { useWalletUI } from "@/components/WalletDialogs";
 import { notifications } from "@/data/viewer";
 import { SignInDialog, useAuthDialog } from "@/components/auth";
@@ -83,12 +83,13 @@ function BalancePill({ balance, onAdd }: { balance: number; onAdd: () => void })
     return () => cancelAnimationFrame(raf);
   }, [balance]);
   return (
-    <span className="hidden h-9 items-center rounded-full border bg-surface text-sm sm:inline-flex">
-      <Link to="/wallet" className="inline-flex h-full items-center gap-1.5 rounded-l-full pl-3 pr-2 hover:bg-secondary" aria-label={`Balance ${fmtUSD2(balance)} USDC. Open wallet and predictions`}>
-        <span key={flash} className={cn("rounded px-1 font-mono font-bold tabular", flash > 0 && "flash")}>{fmtUSD2(shown)}</span>
-        <span className="text-xs text-label">USDC</span>
+    <span className="inline-flex h-9 items-center rounded-full border bg-surface text-sm">
+      <Link to="/wallet" className="inline-flex h-full items-center gap-1.5 rounded-full pl-2.5 pr-3 hover:bg-secondary sm:rounded-r-none sm:pl-3 sm:pr-2" aria-label={`Balance ${fmtUSD2(balance)} USDC. Open wallet and predictions`}>
+        <Wallet className="h-4 w-4 text-label sm:hidden" aria-hidden />
+        <span key={flash} className={cn("rounded font-mono font-bold tabular sm:px-1", flash > 0 && "flash")}>{fmtUSD2(shown)}</span>
+        <span className="hidden text-xs text-label sm:inline">USDC</span>
       </Link>
-      <button onClick={onAdd} className="grid h-full w-9 place-items-center rounded-r-full border-l hover:bg-secondary" aria-label="Add funds"><Plus className="h-4 w-4" /></button>
+      <button onClick={onAdd} className="hidden h-full w-9 place-items-center rounded-r-full border-l hover:bg-secondary sm:grid" aria-label="Add funds"><Plus className="h-4 w-4" /></button>
     </span>
   );
 }
@@ -144,6 +145,26 @@ function NotificationsMenu() {
   );
 }
 
+/** Theme picker for the phone menu: the header toggle moves here below md. */
+function ThemeSegmented() {
+  const { mode, setMode } = useTheme();
+  const items: { m: ThemeMode; label: string; Icon: typeof Sun }[] = [
+    { m: "dark", label: "Dark", Icon: Moon },
+    { m: "light", label: "Light", Icon: Sun },
+    { m: "system", label: "Device", Icon: Monitor },
+  ];
+  return (
+    <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-1 rounded-xl border bg-surface p-1">
+      {items.map(({ m, label, Icon }) => (
+        <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+          className={cn("inline-flex h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors", mode === m ? "bg-foreground text-background" : "text-label hover:text-foreground")}>
+          <Icon className="h-4 w-4" /> {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AccountMenu() {
   const { user, signOut } = useStore();
   const nav = useNavigate();
@@ -176,7 +197,7 @@ function AccountMenu() {
   );
 }
 
-function SideNav({ onNavigate }: { onNavigate?: () => void }) {
+function SideNav({ onNavigate, categories: showCats = true }: { onNavigate?: () => void; categories?: boolean }) {
   const { user, follows } = useStore();
   const [moreFollowed, setMoreFollowed] = React.useState(false);
   const [moreLive, setMoreLive] = React.useState(false);
@@ -212,7 +233,7 @@ function SideNav({ onNavigate }: { onNavigate?: () => void }) {
         <ul className="space-y-0.5">{recommended.slice(0, moreLive ? 12 : 5).map((s) => <Row key={s.handle} s={s} />)}</ul>
         <button onClick={() => setMoreLive((v) => !v)} className="mt-1 px-2 text-xs font-semibold text-label hover:text-foreground">{moreLive ? "Show less" : "Show more"}</button>
       </section>
-      <section>
+      {showCats && <section>
         <h2 className="mb-1.5 px-2 text-xs font-semibold text-muted-foreground">Categories</h2>
         <ul className="space-y-0.5">
           {topCats.map((c) => (
@@ -225,13 +246,14 @@ function SideNav({ onNavigate }: { onNavigate?: () => void }) {
           ))}
           <li><Link to="/browse" onClick={onNavigate} className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-semibold hover:bg-secondary"><Compass className="h-4 w-4" /> All 20 categories</Link></li>
         </ul>
-      </section>
+      </section>}
     </nav>
   );
 }
 
 export default function SiteLayout() {
   const { user, balance, signOut } = useStore();
+  const unread = notifications.filter((n) => !n.read).length;
   const [menuOpen, setMenuOpen] = React.useState(false);
   const auth = useAuthDialog();
   const walletUI = useWalletUI();
@@ -241,8 +263,11 @@ export default function SiteLayout() {
   return (
     <div className="min-h-screen bg-background">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-lime focus:px-3 focus:py-2 focus:text-lime-ink">Skip to content</a>
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b bg-background px-2 min-[360px]:gap-3 min-[360px]:px-3 md:px-5">
-        <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setMenuOpen(true)}><Menu className="h-5 w-5" /></Button>
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b bg-background px-2 min-[360px]:gap-3 min-[360px]:px-3 md:h-16 md:px-5">
+        <Button variant="ghost" size="icon" className="relative lg:hidden" aria-label={user && unread ? `Open menu, ${unread} unread notifications` : "Open menu"} onClick={() => setMenuOpen(true)}>
+          <Menu className="h-5 w-5" />
+          {user && unread > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-live md:hidden" aria-hidden />}
+        </Button>
         <Link to="/" aria-label="xp.live home" className="shrink-0 pt-1 min-[360px]:mr-2"><Logo size={30} /></Link>
         <nav aria-label="Main" className="hidden items-center gap-0.5 md:flex">
           <CategoriesMenu />
@@ -258,14 +283,14 @@ export default function SiteLayout() {
               {user.role === "creator" && <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/studio"><Clapperboard /> Studio</Link></Button>}
               {user.role === "admin" && <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/admin"><Shield /> Admin</Link></Button>}
               <BalancePill balance={balance} onAdd={() => walletUI.open("add")} />
-              <ThemeToggle />
-              <NotificationsMenu />
+              {/* Phones keep only search, wallet and avatar; theme and notifications live in the menu. */}
+              <span className="hidden md:contents"><ThemeToggle /><NotificationsMenu /></span>
               <Button asChild variant="ghost" size="icon" aria-label="Messages" className="hidden sm:inline-flex"><Link to="/messages"><MessageSquare className="h-5 w-5" /></Link></Button>
               <AccountMenu />
             </>
           ) : (
             <>
-              <ThemeToggle />
+              <span className="hidden md:contents"><ThemeToggle /></span>
               {/* Log in is visible at every width: on phones it was the only way back into an existing account from the header. */}
               <Button variant="outline" size="sm" className="border-foreground/50 px-2.5 text-foreground hover:border-foreground sm:px-3" onClick={() => auth.open("signin")}>Log in</Button>
               <Button size="sm" className="px-2.5 sm:px-3" onClick={() => auth.open("signup")}>Sign up</Button>
@@ -285,11 +310,12 @@ export default function SiteLayout() {
             <div className="flex h-16 shrink-0 items-center border-b px-4"><Link to="/" onClick={() => setMenuOpen(false)}><Logo size={28} /></Link></div>
             <div className="flex-1 overflow-y-auto px-2 py-3">
               <ul className="border-b pb-3">
-                {[{ to: "/browse", label: "Browse" }, { to: "/markets", label: "Predictions" }, ...(user ? [{ to: "/wallet", label: "Wallet & predictions", note: `${fmtUSD2(balance)} USDC` }, { to: "/following", label: "Following" }] : []), { to: "/how-it-works", label: "How payouts work" }].map((l) => (
+                {[{ to: "/browse", label: "Browse" }, { to: "/markets", label: "Predictions" }, ...(user ? [{ to: "/following", label: "Following" }, { to: "/notifications", label: "Notifications", note: unread ? `${unread} new` : "" }, { to: "/messages", label: "Messages" }, { to: "/wallet", label: "Wallet & predictions", note: `${fmtUSD2(balance)} USDC` }] : []), { to: "/how-it-works", label: "How payouts work" }].map((l) => (
                   <li key={l.to}><NavLink to={l.to} onClick={() => setMenuOpen(false)} className={({ isActive }) => cn("flex min-h-[52px] items-center justify-between rounded-lg px-3 font-display text-lg font-semibold hover:bg-secondary", isActive ? "text-foreground" : "text-label")}>{l.label}{"note" in l && <span className="font-mono text-sm text-label">{l.note}</span>}</NavLink></li>
                 ))}
               </ul>
-              <div className="pt-4"><SideNav onNavigate={() => setMenuOpen(false)} /></div>
+              <div className="border-b px-1 py-4"><p className="mb-2 px-2 text-xs font-semibold text-muted-foreground">Theme</p><ThemeSegmented /></div>
+              <div className="pt-4"><SideNav onNavigate={() => setMenuOpen(false)} categories={false} /></div>
             </div>
             <div className="shrink-0 border-t p-4">
               {user ? (
