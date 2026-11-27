@@ -15,7 +15,7 @@ import { durLabel } from "@/lib/autoclip";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StreamThumb } from "@/components/xp";
-import { AiBadge, AiCheckProgress, aiChecking } from "@/components/ai";
+import { AiBadge, AiCheckProgress, aiChecking, aiFlagged } from "@/components/ai";
 import { TxLink } from "@/components/WalletDialogs";
 import { cn, fmt, fmtUSD2, fmtUSDC } from "@/lib/utils";
 
@@ -54,6 +54,7 @@ export function positionOutcome(m: Market, p: Position) {
   if (p.tx === "failed") return { key: "failed", label: "Not placed", back: 0, line: "Nothing left your balance" };
   if (m.status === "open") return { key: "open", label: "Open", back: est, line: `Estimated ${fmtUSDC(est)} back if ${p.side} wins` };
   if (m.status === "awaiting") return { key: "awaiting", label: "Waiting for result", back: est, line: `${fmtUSDC(est)} back if ${p.side} wins (locked)` };
+  if (aiFlagged(m)) return { key: "held", label: "Held for review", back: est, line: `AI flagged the result · a person reviews it ${m.aiFlag?.reviewEta ?? "soon"}` };
   if (aiChecking(m)) return { key: "awaiting", label: "AI checking", back: est, line: `Result ${m.outcome} posted · AI checking before payout` };
   if (m.status === "voided") return { key: "refunded", label: "Refunded", back: p.amount, line: `${fmtUSDC(p.amount)} returned` };
   if (m.dispute) return { key: "held", label: "Under review", back: 0, line: "A dispute is open. Payouts are held." };
@@ -208,6 +209,25 @@ export function ResolutionBlock({ m, className }: { m: Market; className?: strin
   }
   if (m.status !== "settled") return null;
   const checking = aiChecking(m);
+  if (aiFlagged(m) && m.aiFlag) {
+    return (
+      <div className={cn("rounded-xl border border-warn/40 p-4", className)}>
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-display text-lg font-bold">{by} posted {m.outcome}</span>
+          <AiBadge flagged size="sm" />
+        </div>
+        <div className="mt-3 rounded-lg bg-warn/10 px-3 py-2 text-sm">
+          <p className="font-semibold text-warn">AI couldn’t confirm this result</p>
+          <p className="mt-0.5 text-label">{m.aiFlag.reason}</p>
+        </div>
+        <dl className="mt-2 text-sm">
+          <Line k="Payout">Held. A person at xp.live reviews the clip {m.aiFlag.reviewEta}.</Line>
+          <Line k="Next">If the result stands, winners are paid. If not, it’s corrected and the right side is paid.</Line>
+          <Line k="Evidence"><EvidenceButton m={m} /></Line>
+        </dl>
+      </div>
+    );
+  }
   const d = disputeLine(m);
   const paid = paidAt(m);
   const paying = !paid || paid > Date.now();

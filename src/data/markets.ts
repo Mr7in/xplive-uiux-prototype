@@ -52,7 +52,9 @@ export interface Market {
    * AI double-check of the creator's (or mod's) result. "checking" holds the payout until it passes.
    * Seed results have no value: treated as passed. PLACEHOLDER: AI verification service.
    */
-  aiCheck?: "checking" | "passed";
+  aiCheck?: "checking" | "passed" | "flagged";
+  /** The AI didn't match the result to the rule: payout held for a person to review. PLACEHOLDER: AI verification + review queue. */
+  aiFlag?: { reason: string; seenAt: string; creatorNote?: string; reviewEta: string };
   aiCheckedAt?: number;
   /** A channel mod settled instead of the creator. */
   settledByMod?: string;
@@ -113,6 +115,9 @@ const past = (
 ): Market => ({ id, handle, question, rule, status: "settled", outcome, yesPool, noPool, predictors, closedMinsAgo, settledMinsAgo: closedMinsAgo - resolveAfter, paidMinsAgo: closedMinsAgo - resolveAfter - payAfter, evidence, clipAt, ...extra });
 
 export const history: Market[] = [
+  // AI flagged this creator result: payout held for review (shown to viewers, the creator and admins).
+  past("m-0950", "nordic-slots-god", "Will bonus 5 pay over 50×?", "Bonus 5 on the hunt tracker, multiplier as shown by the game.", "YES", 212, 341, 176, 19, 4, 0, "Creator: bonus 5 paid 52×", "1:22:10",
+    { aiCheck: "flagged", paidMinsAgo: undefined, aiFlag: { reason: "The 52× in the clip is bonus 6. The tracker shows bonus 5 at 38×.", seenAt: "1:22:10", reviewEta: "within 30 min" } }),
   past("m-0901", "marblerally", "Will the green marble win heat 2?", "Official finish of heat 2 as shown on stream.", "NO", 402, 377.5, 188, 41, 6, 2, "Green finished 3rd, photo finish replay", "1:31:08"),
   past("m-0902", "marblerally", "Will any marble leave the track in heat 1?", "Marble fully off the track on camera.", "YES", 233, 301, 151, 88, 5, 3, "Teal marble off the banked turn", "1:04:51"),
   past("m-0903", "marblerally", "Will last night's champion win the final?", "Final heat finish order.", "NO", 615, 284, 247, 1_510, 7, 2, "Champion finished 4th in the final", "2:46:02"),

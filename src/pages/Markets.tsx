@@ -6,7 +6,7 @@ import { pool, type Market, type MarketStatus as MStatus } from "@/data/markets"
 import { Link } from "react-router-dom";
 import { clock, ledgerStats, paidAt, settledAt, when, winners } from "@/lib/ledger";
 import { ResolutionBlock } from "@/components/trust";
-import { AiBadge, aiChecking } from "@/components/ai";
+import { AiBadge, aiChecking, aiFlagged } from "@/components/ai";
 import { categories, categoryBySlug } from "@/data/categories";
 import { streamerByHandle } from "@/data/streamers";
 import { EmptyState, MarketCard, MarketStatus, PageHeader } from "@/components/xp";
@@ -127,11 +127,11 @@ function Ledger({ rows }: { rows: Market[] }) {
               <React.Fragment key={m.id}>
                 <tr className="cursor-pointer hover:bg-secondary/40" onClick={() => setOpen(isOpen ? null : m.id)} aria-expanded={isOpen}>
                   <td className="px-4 py-3"><span className="font-medium">{m.question}</span></td>
-                  <td className="whitespace-nowrap px-3 py-3"><Link to={`/${m.handle}`} onClick={(e) => e.stopPropagation()} className="text-label hover:text-foreground">{m.settledByMod ?? s?.name}</Link>{m.settledByMod && <span className="text-xs text-muted-foreground"> (mod)</span>} <span className="font-mono text-xs text-muted-foreground">{clock(settledAt(m))}</span><span className="mt-1 block"><AiBadge size="sm" checking={aiChecking(m)} /></span></td>
+                  <td className="whitespace-nowrap px-3 py-3"><Link to={`/${m.handle}`} onClick={(e) => e.stopPropagation()} className="text-label hover:text-foreground">{m.settledByMod ?? s?.name}</Link>{m.settledByMod && <span className="text-xs text-muted-foreground"> (mod)</span>} <span className="font-mono text-xs text-muted-foreground">{clock(settledAt(m))}</span><span className="mt-1 block"><AiBadge size="sm" checking={aiChecking(m)} flagged={aiFlagged(m)} /></span></td>
                   <td className="px-3 py-3"><MarketStatus m={m} /></td>
                   <td className="whitespace-nowrap px-3 py-3 text-right font-mono tabular">{fmtUSD2(pool(m))}</td>
-                  <td className="px-3 py-3 text-right font-mono tabular">{m.dispute ? "held" : fmt(winners(m))}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-muted-foreground">{m.dispute ? "On hold" : paid ? when(paid) : "Paying"}</td>
+                  <td className="px-3 py-3 text-right font-mono tabular">{m.dispute || aiFlagged(m) ? "held" : fmt(winners(m))}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-muted-foreground">{m.dispute || aiFlagged(m) ? "On hold" : paid ? when(paid) : "Paying"}</td>
                 </tr>
                 {isOpen && <tr><td colSpan={6} className="px-4 pb-4"><ResolutionBlock m={m} /></td></tr>}
               </React.Fragment>

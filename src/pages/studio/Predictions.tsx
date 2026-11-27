@@ -1,4 +1,4 @@
-import { AiMarkIcon } from "@/components/ai";
+import { AiBadge, AiMarkIcon } from "@/components/ai";
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -123,12 +123,39 @@ export function NeedsResult({ m }: { m: Market }) {
   );
 }
 
+/** The AI couldn't confirm the creator's result: payout held, creator can add a note for the reviewer. */
+export function FlaggedResult({ m }: { m: Market }) {
+  const { noteOnFlag } = useStore();
+  const [note, setNote] = React.useState("");
+  const sent = m.aiFlag?.creatorNote;
+  return (
+    <Card className="border-2 border-warn/60">
+      <CardContent className="space-y-3 pt-5">
+        <div className="flex items-center justify-between gap-2"><AiBadge flagged /><span className="text-xs text-label">You settled {m.outcome}</span></div>
+        <p className="font-display text-xl font-bold leading-snug">{m.question}</p>
+        <div className="rounded-lg bg-warn/10 px-3 py-2 text-sm"><p className="font-semibold text-warn">AI couldn’t confirm your result</p><p className="mt-0.5 text-label">{m.aiFlag?.reason}</p></div>
+        <p className="text-sm text-label">{fmtUSDC(pool(m))} is held. A person at xp.live reviews the clip {m.aiFlag?.reviewEta}. If your result stands, winners are paid. If not, it’s corrected.</p>
+        {sent ? (
+          <p className="rounded-lg border px-3 py-2 text-sm"><span className="text-muted-foreground">Your note to the reviewer:</span> “{sent}”</p>
+        ) : (
+          <form className="grid gap-2" onSubmit={(e) => { e.preventDefault(); if (!note.trim()) return; noteOnFlag(m.id, note.trim()); toast.success("Note sent to the reviewer"); }}>
+            <Label htmlFor={`fn-${m.id}`}>Add a note for the reviewer <span className="font-normal text-muted-foreground">(optional)</span></Label>
+            <Textarea id={`fn-${m.id}`} rows={2} value={note} onChange={(e) => setNote(e.target.value.slice(0, 280))} placeholder="Bonus 5 was re-bought, the tracker didn't update." />
+            <Button type="submit" variant="outline" disabled={!note.trim()}>Send note</Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function StudioPredictions() {
   usePageMeta("Predictions · Studio");
   const { user, markets } = useStore();
   const mine = markets.filter((m) => m.handle === user?.channel);
   const open = mine.find((m) => m.status === "open");
   const awaiting = mine.filter((m) => m.status === "awaiting");
+  const flagged = mine.filter((m) => m.aiCheck === "flagged");
   const history = mine.filter((m) => m.status === "settled" || m.status === "voided");
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -137,6 +164,7 @@ export default function StudioPredictions() {
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <AskQuestion />
         <div className="space-y-4">
+          {flagged.map((m) => <FlaggedResult key={m.id} m={m} />)}
           {awaiting.map((m) => <NeedsResult key={m.id} m={m} />)}
           {open ? <RunningQuestion m={open} /> : !awaiting.length && <EmptyState title="Nothing running" body="Start a question and it appears beside your player for every viewer." />}
           <Card>

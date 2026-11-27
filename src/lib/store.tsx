@@ -202,6 +202,8 @@ interface Store extends State {
   savePresets: (handle: string, list: Preset[]) => void;
   closeMarket: (marketId: string) => void;
   extendMarket: (marketId: string, seconds: number) => void;
+  /** Creator's note to the reviewer on an AI-flagged result. PLACEHOLDER: review queue API. */
+  noteOnFlag: (marketId: string, note: string) => void;
   proposeResult: (marketId: string, result: Side | "VOID", note: string, clip?: EvidenceClip) => void;
   adminDecide: (marketId: string, decision: Side | "VOID", note: string) => void;
   connectWallet: (provider: WalletProvider) => Promise<ConnectedWallet>;
@@ -290,7 +292,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (m.status === "settled" && m.aiCheck === "checking" && m.settledAt && now - m.settledAt > 12_000) {
             return { ...m, aiCheck: "passed" as const, aiCheckedAt: now };
           }
-          if (m.status === "settled" && m.settledAt && !m.paidAt && m.aiCheck !== "checking" && now - (m.aiCheckedAt ?? m.settledAt) > 3_000) {
+          if (m.status === "settled" && m.settledAt && !m.paidAt && m.aiCheck !== "checking" && m.aiCheck !== "flagged" && now - (m.aiCheckedAt ?? m.settledAt) > 3_000) {
             const wins = s.positions.filter((p) => p.marketId === m.id && p.tx === "confirmed" && p.side === m.outcome);
             for (const p of wins) {
               const back = backToYou(m, p);
@@ -384,12 +386,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       savePresets: (handle, list) => sync({ a: "presets", handle, list }),
       closeMarket: (id) => sync({ a: "close", id, at: Date.now() }),
       extendMarket: (id, sec) => sync({ a: "extend", id, sec }),
+      noteOnFlag: (id, note) => setState((s) => ({ ...s, markets: s.markets.map((m) => (m.id === id && m.aiFlag ? { ...m, aiFlag: { ...m.aiFlag, creatorNote: note } } : m)) })),
       proposeResult: (id, result, note, clip) => sync({ a: "propose", id, result, note, at: Date.now(), clip }),
       adminDecide: (id, decision, note) =>
         setState((s) => ({
           ...s,
           markets: s.markets.map((m) =>
-            m.id !== id ? m : decision === "VOID" ? { ...m, status: "voided", voidReason: note, dispute: undefined } : { ...m, status: "settled", outcome: decision, evidence: note, dispute: undefined }
+            m.id !== id ? m : decision === "VOID" ? { ...m, status: "voided", voidReason: note, dispute: undefined } : { ...m, status: "settled", outcome: decision, evidence: note, dispute: undefined, ...(m.aiCheck === "flagged" ? { aiCheck: "passed" as const, aiCheckedAt: Date.now(), aiFlag: undefined, settledAt: m.settledAt ?? Date.now() - (m.settledMinsAgo ?? 0) * 60_000 } : {}) }
           ),
         })),
       connectWallet: (provider) =>

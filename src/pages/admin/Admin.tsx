@@ -67,7 +67,9 @@ export function Overview() {
   const open = markets.filter((m) => m.status === "open");
   const awaiting = markets.filter((m) => m.status === "awaiting");
   const disputed = markets.filter((m) => m.dispute);
+  const flagged = markets.filter((m) => m.aiCheck === "flagged");
   const attention = [
+    ...flagged.map((m) => ({ k: m.id, title: m.question, sub: `${streamerByHandle(m.handle)?.name} settled ${m.outcome} · AI: ${m.aiFlag?.reason ?? "couldn’t confirm"}`, type: "AI flag", tone: "warning" as const, due: "30m", href: `/admin/markets/${m.id}`, action: "Review" })),
     ...disputed.map((m) => ({ k: m.id, title: m.question, sub: `${streamerByHandle(m.handle)?.name} · creator settled ${m.outcome} · disputed by ${m.dispute!.by}`, type: "Dispute", tone: "warning" as const, due: "1h 12m", href: `/admin/markets/${m.id}`, action: "Review" })),
     ...reports.filter((r) => r.severity === "Critical" || r.severity === "High").map((r) => ({ k: r.id, title: r.target, sub: `${r.category} · reported by ${r.reporter}`, type: "Report", tone: "danger" as const, due: r.severity === "Critical" ? "now" : "3h", href: "/admin/moderation/reports", action: "Open" })),
     ...awaiting.filter((m) => (m.closedMinsAgo ?? 0) > 15).map((m) => ({ k: m.id, title: m.question, sub: `${streamerByHandle(m.handle)?.name} · closed ${m.closedMinsAgo} min ago, no result`, type: "Late result", tone: "muted" as const, due: `auto-void in ${60 - (m.closedMinsAgo ?? 0)}m`, href: `/admin/markets/${m.id}`, action: "Inspect" })),
@@ -146,14 +148,14 @@ export function AdminMarkets() {
 
 export function Disputes() {
   const { markets } = useStore();
-  const list = markets.filter((m) => m.dispute);
+  const list = markets.filter((m) => m.dispute || m.aiCheck === "flagged");
   return (
-    <Page title="Disputes" description="Viewers challenged these results. Payouts are held until you decide.">
+    <Page title="Disputes and AI flags" description="Results a viewer challenged or the AI couldn’t confirm. Payouts are held until you decide.">
       {list.length ? (
         <div className="space-y-3">{list.map((m) => (
           <Card key={m.id} className="border-warn/40"><CardContent className="flex flex-wrap items-center gap-4 pt-5">
-            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{streamerByHandle(m.handle)?.name} · creator settled {m.outcome}</p><p className="font-display text-lg font-bold">{m.question}</p><p className="mt-1 text-sm text-label">“{m.dispute!.statement}”</p></div>
-            <div className="text-right text-sm"><p className="font-mono">{fmtUSDC(pool(m))}</p><p className="text-muted-foreground">filed {m.dispute!.filedMinsAgo} min ago</p></div>
+            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{streamerByHandle(m.handle)?.name} · creator settled {m.outcome} · {m.dispute ? "viewer dispute" : "AI flag"}</p><p className="font-display text-lg font-bold">{m.question}</p><p className="mt-1 text-sm text-label">{m.dispute ? `“${m.dispute.statement}”` : `AI: ${m.aiFlag?.reason}`}{m.aiFlag?.creatorNote && <span className="block">Creator: “{m.aiFlag.creatorNote}”</span>}</p></div>
+            <div className="text-right text-sm"><p className="font-mono">{fmtUSDC(pool(m))}</p><p className="text-muted-foreground">{m.dispute ? `filed ${m.dispute.filedMinsAgo} min ago` : "payout held"}</p></div>
             <Button asChild><Link to={`/admin/markets/${m.id}`}>Review</Link></Button>
           </CardContent></Card>
         ))}</div>
@@ -173,7 +175,7 @@ export function MarketReview() {
   if (!m) return <EmptyState title="Question not found" />;
   const s = streamerByHandle(m.handle)!;
   const winners = (side: "YES" | "NO") => Math.round(m.predictors * ((side === "YES" ? m.yesPool : m.noPool) / Math.max(1, pool(m))));
-  const resolvable = m.status === "awaiting" || !!m.dispute || m.status === "open";
+  const resolvable = m.status === "awaiting" || !!m.dispute || m.aiCheck === "flagged" || m.status === "open";
   const opts: { v: "YES" | "NO" | "VOID"; t: string; d: string; cls: string }[] = [
     { v: "YES", t: !m.dispute ? "Settle YES" : m.outcome === "YES" ? "Uphold YES" : "Overturn to YES", d: `${fmt(winners("YES"))} viewers paid from ${fmtUSDC(pool(m))}.${m.dispute && m.outcome === "NO" ? " Disputer’s bond returned." : ""}`, cls: "border-yes bg-yes-tint" },
     { v: "NO", t: !m.dispute ? "Settle NO" : m.outcome === "NO" ? "Uphold NO" : "Overturn to NO", d: `${fmt(winners("NO"))} viewers paid instead.${m.dispute && m.outcome === "YES" ? " Disputer’s bond returned." : ""}`, cls: "border-no bg-no-tint" },
@@ -183,7 +185,7 @@ export function MarketReview() {
     <div className="mx-auto max-w-[1300px] space-y-6">
       <Link to="/admin/markets" className="inline-flex items-center gap-1.5 text-sm text-label hover:text-foreground"><ArrowLeft className="h-4 w-4" /> All questions</Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div><div className="mb-2 flex flex-wrap gap-2"><MarketStatus m={m} />{m.dispute && <Badge variant="warning">Payouts held</Badge>}<span className="font-mono text-xs text-muted-foreground">{m.id}</span></div><h1 className="font-display text-3xl font-extrabold leading-tight">{m.question}</h1><p className="mt-1 text-muted-foreground"><Link to={`/${s.handle}`} className="hover:text-foreground">{s.name}</Link> · {categoryBySlug(s.category)?.name} · {m.rule}</p></div>
+        <div><div className="mb-2 flex flex-wrap gap-2"><MarketStatus m={m} />{(m.dispute || m.aiCheck === "flagged") && <Badge variant="warning">Payouts held</Badge>}<span className="font-mono text-xs text-muted-foreground">{m.id}</span></div><h1 className="font-display text-3xl font-extrabold leading-tight">{m.question}</h1><p className="mt-1 text-muted-foreground"><Link to={`/${s.handle}`} className="hover:text-foreground">{s.name}</Link> · {categoryBySlug(s.category)?.name} · {m.rule}</p></div>
         {m.status === "open" && <Button variant="destructive-outline" onClick={() => { closeMarket(m.id); toast("Question force-closed"); }}>Force close</Button>}
       </div>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
@@ -195,6 +197,7 @@ export function MarketReview() {
               <div className="relative aspect-[16/7] overflow-hidden rounded-xl"><BoxArt c={categoryBySlug(s.category)!} size={[600, 800]} /><span className="absolute left-3 top-3 rounded bg-black/75 px-2 py-0.5 font-mono text-xs text-white">Recording at close · 3:42:10</span></div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-xl border p-4"><p className="mb-1 text-xs text-muted-foreground">Creator’s evidence</p><p>{m.evidence ?? "None submitted yet."}</p></div>
+                {m.aiFlag && <div className="rounded-xl border border-warn/40 bg-warn-bg p-4"><p className="mb-1 text-xs text-warn">AI flag · looked at {m.aiFlag.seenAt}</p><p>{m.aiFlag.reason}</p>{m.aiFlag.creatorNote && <p className="mt-2 text-sm text-label">Creator’s note: “{m.aiFlag.creatorNote}”</p>}</div>}
                 {m.dispute && <div className="rounded-xl border border-warn/40 bg-warn-bg p-4"><p className="mb-1 text-xs text-warn">Dispute · {m.dispute.by} · predicted {m.dispute.side} · {fmtUSDC(m.dispute.stake)}</p><p>“{m.dispute.statement}”</p></div>}
               </div>
             </CardContent>

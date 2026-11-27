@@ -10,12 +10,14 @@
  */
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, PauseCircle } from "lucide-react";
 import type { Market } from "@/data/markets";
 import { cn } from "@/lib/utils";
 
 /** True while a posted result is waiting on its AI check (payout held). */
 export const aiChecking = (m: Market) => m.status === "settled" && m.aiCheck === "checking";
+/** The AI couldn't match the result to the rule: payout held until a person reviews it. */
+export const aiFlagged = (m: Market) => m.status === "settled" && m.aiCheck === "flagged";
 
 /** The mark: a shield with a check and a small spark. Same shape everywhere, so it reads as one trustmark. */
 export function AiMarkIcon({ className }: { className?: string }) {
@@ -29,8 +31,14 @@ export function AiMarkIcon({ className }: { className?: string }) {
 }
 
 /** Trustmark pill: "Checked by AI", or "AI checking" while a result is being verified. */
-export function AiBadge({ checking, time, className, size = "md" }: { checking?: boolean; time?: string; className?: string; size?: "sm" | "md" }) {
+export function AiBadge({ checking, flagged, time, className, size = "md" }: { checking?: boolean; flagged?: boolean; time?: string; className?: string; size?: "sm" | "md" }) {
   const icon = size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5";
+  if (flagged)
+    return (
+      <span className={cn("inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-warn/50 bg-warn/10 font-semibold text-warn", size === "sm" ? "px-1.5 py-px text-[11px]" : "px-2 py-0.5 text-xs", className)} title="AI couldn't confirm this result. Payout is held until a person reviews it.">
+        <PauseCircle className={icon} /> Held for review
+      </span>
+    );
   return (
     <span
       className={cn(

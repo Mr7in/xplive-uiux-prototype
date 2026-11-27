@@ -378,7 +378,7 @@ function RecentPanel({ mine }: { mine: Market[] }) {
           {done.map((m) => (
             <li key={m.id} className="flex items-center gap-3 py-2.5 text-sm">
               <span className={cn("w-12 shrink-0 rounded-md py-1 text-center font-display text-xs font-bold", m.status === "voided" ? "bg-secondary text-muted-foreground" : m.outcome === "YES" ? "bg-yes-tint text-yes" : "bg-no-tint text-no")}>{m.status === "voided" ? "VOID" : m.outcome}</span>
-              <span className="min-w-0 flex-1 truncate">{m.question}</span>
+              <span className="min-w-0 flex-1"><span className="block truncate">{m.question}</span>{m.aiCheck === "flagged" && <span className="mt-0.5 block text-xs text-warn">AI flagged · payout held for review</span>}{m.aiCheck === "checking" && <span className="mt-0.5 block text-xs text-label">AI checking</span>}</span>
               <span className="shrink-0 font-mono text-xs text-muted-foreground">{m.settledAt ? ago(m.settledAt, now) : m.settledMinsAgo !== undefined ? ago(LOAD - m.settledMinsAgo * 60_000, now) : ""}</span>
             </li>
           ))}
