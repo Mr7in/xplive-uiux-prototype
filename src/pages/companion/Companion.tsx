@@ -1,3 +1,4 @@
+import { AiBadge, AiCheckProgress, aiChecking } from "@/components/ai";
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -273,7 +274,8 @@ function AskPanel({ s, blocked }: { s: Streamer; blocked: boolean }) {
           ))}
         </div>
       </div>
-      <Button size="lg" className="mt-auto h-16 rounded-2xl text-lg" disabled={!ok || blocked} onClick={start}><Plus className="!size-5" /> Start question</Button>
+      <p className="mt-auto flex items-center gap-1.5 text-xs text-label"><AiBadge size="sm" /> You settle it, AI double-checks before payout.</p>
+      <Button size="lg" className="h-16 rounded-2xl text-lg" disabled={!ok || blocked} onClick={start}><Plus className="!size-5" /> Start question</Button>
     </section>
   );
 }
@@ -327,7 +329,7 @@ function SettleCard({ m, s, preVoid, busy, onBusy, onDone }: { m: Market; s: Str
           </div>
           <div className="flex items-start gap-3 rounded-2xl border bg-card px-4 py-3 text-sm">
             <Film className="mt-0.5 h-4 w-4 shrink-0 text-neon" />
-            <p className="text-label"><span className="font-semibold text-foreground">Evidence is made for you.</span> Open for {durLabel(plan.durationSec)}, so we cut a {durLabel(plan.clipSec)} clip around the moment. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
+            <p className="text-label"><span className="font-semibold text-foreground">Clip made for you, checked by AI.</span> We cut a {durLabel(plan.clipSec)} clip (about {Math.round(plan.waitMs / 1000)} s), then AI double-checks your call before payout.</p>
           </div>
           <button type="button" onClick={() => setVoiding(true)} className="h-12 rounded-xl border bg-card text-sm font-semibold text-label hover:text-foreground">Can’t decide fairly? Void and refund</button>
         </>
@@ -358,7 +360,8 @@ function DoneCard({ m, onNext }: { m: Market; onNext: () => void }) {
       <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-lime-ink"><Check className="h-6 w-6" strokeWidth={3} /></span>
       <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
       {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
-      <p className="text-sm text-label">{m.status === "settled" ? `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers. Shown in chat now with the evidence clip. Viewers can dispute for 2 hours.` : `${fmtUSDC(pool(m))} back to ${fmt(m.predictors)} viewers.`}</p>
+      {m.status === "settled" && (aiChecking(m) ? <AiCheckProgress m={m} by="You" className="text-left" /> : <AiBadge />)}
+      <p className="text-sm text-label">{m.status === "settled" ? (aiChecking(m) ? `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers once the check passes.` : `${fmtUSDC(paidOut(m))} to ${fmt(sideCounts(m)[m.outcome!])} viewers. Viewers can dispute for 2 hours.`) : `${fmtUSDC(pool(m))} back to ${fmt(m.predictors)} viewers.`}</p>
       <Button className="mt-2 h-12 w-full rounded-xl" variant="secondary" onClick={onNext}>Done</Button>
     </section>
   );

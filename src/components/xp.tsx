@@ -157,7 +157,7 @@ export function MarketStatus({ m }: { m: Market }) {
         <Clock className="h-3.5 w-3.5" /> <span className="font-mono tabular">{timeLeft(m.secondsLeft ?? 0)}</span>
       </span>
     );
-  if (m.status === "awaiting") return <Badge variant="warning"><Hourglass className="h-3 w-3" /> AI checking</Badge>;
+  if (m.status === "awaiting") return <Badge variant="warning"><Hourglass className="h-3 w-3" /> Awaiting result</Badge>;
   if (m.status === "voided") return <Badge variant="muted"><CircleSlash className="h-3 w-3" /> Voided</Badge>;
   if (m.dispute) return <Badge variant="danger">Disputed</Badge>;
   return (
@@ -195,8 +195,8 @@ export function MarketCard({ m, className }: { m: Market; className?: string }) 
         <span className="text-muted-foreground">{compactUSDC(pool(m))} · {fmt(m.predictors)}</span>
         <span className="text-no">{100 - p}% NO</span>
       </div>
-      {m.status !== "voided" && (
-        <p className="inline-flex items-center gap-1 text-[11px] text-label"><AiMarkIcon className="h-3 w-3 text-foreground" />{m.status === "open" ? "Settled by AI" : m.status === "awaiting" ? "AI is checking the stream" : "Settled by AI"}</p>
+      {m.status !== "voided" && m.status !== "awaiting" && (
+        <p className="inline-flex items-center gap-1 text-[11px] text-label"><AiMarkIcon className="h-3 w-3 text-foreground" />{m.status === "settled" && m.aiCheck === "checking" ? "AI checking the result" : "Checked by AI"}</p>
       )}
       {m.status === "open" && (
         <div className="grid grid-cols-2 gap-2">

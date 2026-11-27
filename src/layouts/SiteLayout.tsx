@@ -320,10 +320,10 @@ export default function SiteLayout() {
                 <Link to="/legal/terms" className="hover:text-foreground">Terms</Link>
                 <Link to="/legal/privacy" className="hover:text-foreground">Privacy</Link>
                 <Link to="/legal/responsible-play" className="hover:text-foreground">Responsible play</Link>
-                <Link to="/how-it-works" className="hover:text-foreground">How payouts work</Link>
+                <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
               </nav>
             </div>
-            <p className="mt-4 flex items-center gap-1.5 text-xs text-foreground"><AiMarkIcon className="h-3.5 w-3.5" />Every result is checked and settled automatically by xp.live AI.</p>
+            <p className="mt-4 flex items-center gap-1.5 text-xs text-foreground"><AiMarkIcon className="h-3.5 w-3.5" />Every result is double-checked by AI before payout.</p>
             <p className="mt-2 max-w-3xl text-xs leading-relaxed">Predictions use USDC on Polygon ({NETWORK.name}{NETWORK.testnet ? ", a test network: test USDC has no value" : ""}). Predictions and casino categories are for adults aged 18+ and are not available in every country. Need a break? Set limits in <Link to="/settings" className="underline hover:text-foreground">Settings</Link>.</p>
           </footer>
         </main>

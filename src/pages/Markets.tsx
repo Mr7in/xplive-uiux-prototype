@@ -6,7 +6,7 @@ import { pool, type Market, type MarketStatus as MStatus } from "@/data/markets"
 import { Link } from "react-router-dom";
 import { clock, ledgerStats, paidAt, settledAt, when, winners } from "@/lib/ledger";
 import { ResolutionBlock } from "@/components/trust";
-import { AiBadge, AiTrustLine } from "@/components/ai";
+import { AiBadge, aiChecking } from "@/components/ai";
 import { categories, categoryBySlug } from "@/data/categories";
 import { streamerByHandle } from "@/data/streamers";
 import { EmptyState, MarketCard, MarketStatus, PageHeader } from "@/components/xp";
@@ -17,7 +17,7 @@ import { Trophy } from "lucide-react";
 
 const TABS: { v: MStatus; label: string; empty: string }[] = [
   { v: "open", label: "Open", empty: "No questions are open right now. They appear here the moment a creator asks one." },
-  { v: "awaiting", label: "AI checking", empty: "Nothing is waiting on a result." },
+  { v: "awaiting", label: "Awaiting result", empty: "Nothing is waiting on a result." },
   { v: "settled", label: "Settled", empty: "No settled questions yet." },
   { v: "voided", label: "Voided", empty: "No voided questions." },
 ];
@@ -41,7 +41,7 @@ export default function Markets() {
   const st = ledgerStats(markets);
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-8 md:px-8">
-      <PageHeader title="Predictions" description="Every open question, and a public ledger of every result. Every result is checked and settled by xp.live AI, with the evidence clip and payout time." />
+      <PageHeader title="Predictions" description="Every open question, and every result: who settled it, the AI check and when winners were paid." />
       {/* Wall of impact: platform settlement data, computed from the same dataset as every other screen. */}
       <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-5">
         {[
@@ -54,7 +54,6 @@ export default function Markets() {
           <div key={k} className="bg-card px-4 py-3"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 font-mono text-xl font-bold tabular">{v}</dd></div>
         ))}
       </dl>
-      <AiTrustLine className="mt-3" />
 
       <Tabs value={status} onValueChange={(v) => setParams({ status: v })} className="mt-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -128,7 +127,7 @@ function Ledger({ rows }: { rows: Market[] }) {
               <React.Fragment key={m.id}>
                 <tr className="cursor-pointer hover:bg-secondary/40" onClick={() => setOpen(isOpen ? null : m.id)} aria-expanded={isOpen}>
                   <td className="px-4 py-3"><span className="font-medium">{m.question}</span></td>
-                  <td className="whitespace-nowrap px-3 py-3"><AiBadge size="sm" time={clock(settledAt(m))} /><span className="mt-1 block text-xs text-muted-foreground">asked by <Link to={`/${m.handle}`} onClick={(e) => e.stopPropagation()} className="text-label hover:text-foreground">{s?.name}</Link></span></td>
+                  <td className="whitespace-nowrap px-3 py-3"><Link to={`/${m.handle}`} onClick={(e) => e.stopPropagation()} className="text-label hover:text-foreground">{m.settledByMod ?? s?.name}</Link>{m.settledByMod && <span className="text-xs text-muted-foreground"> (mod)</span>} <span className="font-mono text-xs text-muted-foreground">{clock(settledAt(m))}</span><span className="mt-1 block"><AiBadge size="sm" checking={aiChecking(m)} /></span></td>
                   <td className="px-3 py-3"><MarketStatus m={m} /></td>
                   <td className="whitespace-nowrap px-3 py-3 text-right font-mono tabular">{fmtUSD2(pool(m))}</td>
                   <td className="px-3 py-3 text-right font-mono tabular">{m.dispute ? "held" : fmt(winners(m))}</td>

@@ -1,3 +1,4 @@
+import { AiBadge, AiCheckProgress, aiChecking } from "@/components/ai";
 import * as React from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Check, CheckCircle2, CircleSlash, Film, ShieldAlert } from "lucide-react";
@@ -53,7 +54,7 @@ export default function ProposeResult() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Link to="/studio/predictions" className="inline-flex items-center gap-1.5 text-sm text-label hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Predictions</Link>
-      <PageHeader title="Propose the result" description="Tell viewers what happened. Winnings pay out straight away; viewers can dispute for 2 hours." />
+      <PageHeader title="Propose the result" description="Tell viewers what happened. AI double-checks your result against the rule and the clip, then xp.live pays the winners." />
 
       <Card>
         <CardContent className="flex flex-wrap items-center gap-4 pt-5">
@@ -67,7 +68,8 @@ export default function ProposeResult() {
           {m.status === "settled" ? <CheckCircle2 className="h-10 w-10 text-neon" /> : <CircleSlash className="h-10 w-10 text-label" />}
           <p className="font-display text-2xl font-bold">{m.status === "settled" ? `Settled as ${m.outcome}` : "Voided, everyone refunded"}</p>
           {m.status === "settled" && m.clip && <ClipLine clip={m.clip} className="rounded-full border border-neon/30 px-3 py-1 text-neon" />}
-          <p className="text-muted-foreground">Viewers have been notified. The result shows in chat and on your channel.</p>
+          {m.status === "settled" && (aiChecking(m) ? <AiCheckProgress m={m} by="You" className="text-left" /> : <AiBadge />)}
+          <p className="text-muted-foreground">{m.status === "settled" && aiChecking(m) ? "Payout starts as soon as the AI check passes." : "Viewers have been notified. The result shows in chat and on your channel."}</p>
           <Button asChild><Link to="/studio/predictions">Ask the next question</Link></Button>
         </CardContent></Card>
       ) : m.status === "open" ? (
@@ -89,7 +91,7 @@ export default function ProposeResult() {
               <div className="flex items-start gap-3 rounded-2xl border bg-card p-4 text-sm">
                 <Film className="mt-0.5 h-5 w-5 shrink-0 text-neon" />
                 <div>
-                  <p className="font-semibold">Clipped for you when you settle</p>
+                  <p className="font-semibold">Clipped for you, then checked by AI</p>
                   <p className="mt-0.5 text-label">This question was open for {durLabel(plan.durationSec)}, so xp.live scans the stream from when it opened, finds the moment and attaches a {durLabel(plan.clipSec)} clip. Takes about {Math.round(plan.waitMs / 1000)} s.</p>
                 </div>
               </div>

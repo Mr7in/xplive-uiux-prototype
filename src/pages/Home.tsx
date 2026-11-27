@@ -69,7 +69,7 @@ function QuestionLifecycle({ m }: { m: Market }) {
         {step === 2 && (
           <div className="rounded-xl border border-neon/40 p-3 text-sm">
             <p className="font-display text-lg font-bold">Result: <span className="text-yes">YES</span> · <span className="text-neon">{fmtUSDC(back)}</span> back to you</p>
-            <p className="mt-2 flex flex-wrap items-center gap-2 text-label"><AiBadge size="sm" /> Checked against the stream and settled automatically. {s.name} asked the question but can’t change the result.</p>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-label">Settled by {s.name} <AiBadge size="sm" /></p>
             <p className="mt-2 text-xs text-muted-foreground">Example. Winnings land in your wallet within minutes; anyone can dispute for 2 hours.</p>
           </div>
         )}

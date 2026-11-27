@@ -48,6 +48,14 @@ export interface Market {
   openedAt?: number;
   /** Evidence clip cut automatically around the moment when the creator settled. PLACEHOLDER: auto-clipper service. */
   clip?: EvidenceClip;
+  /**
+   * AI double-check of the creator's (or mod's) result. "checking" holds the payout until it passes.
+   * Seed results have no value: treated as passed. PLACEHOLDER: AI verification service.
+   */
+  aiCheck?: "checking" | "passed";
+  aiCheckedAt?: number;
+  /** A channel mod settled instead of the creator. */
+  settledByMod?: string;
   /** Mock only: how an open question resolves if it closes during the demo, so the whole loop can be tested. */
   script?: { outcome: Side; evidence: string; clipAt: string };
   dispute?: { by: string; side: Side; stake: number; // USDC
@@ -78,11 +86,11 @@ const current: Market[] = [
   { id: "m-1016", handle: "yukimori", question: "Will Yuki beat the Ender Dragon in under 20 minutes?", rule: "In-game timer at the credits.", status: "settled", outcome: "YES", yesPool: 490, noPool: 320, predictors: 421, closedMinsAgo: 190, settledMinsAgo: 172, evidence: "Credits at 17:44 IGT.", clipAt: "1:52:10", paidMinsAgo: 169 },
   { id: "m-1017", handle: "olivia-bennett", question: "Will Olivia make the final table?", rule: "Final table = last 9 players in the tournament.", status: "settled", outcome: "NO", yesPool: 644, noPool: 277, predictors: 142, closedMinsAgo: 260, settledMinsAgo: 214, evidence: "Busted in 11th place, hand at 3:42:10.", dispute: { by: "tallinn_tom", side: "YES", stake: 25, statement: "She was moved to the final table before the bust. The hand at 3:42 was played at the final table.", filedMinsAgo: 120 } , clipAt: "3:42:10"},
   { id: "m-1018", handle: "rubylane", question: "Will Ruby’s squad win this ranked match?", rule: "Settles on the match summary screen. Champion = win.", status: "settled", outcome: "NO", yesPool: 155, noPool: 238, predictors: 188, closedMinsAgo: 1_440, settledMinsAgo: 1_436, evidence: "Placed 4th, match summary at 2:11:40.", clipAt: "2:11:40", paidMinsAgo: 1434 },
-  { id: "m-1019", handle: "tobilane", question: "Will Tobi win his promo game?", rule: "Settles on the end-of-game screen.", status: "settled", outcome: "YES", yesPool: 411, noPool: 395, predictors: 377, closedMinsAgo: 95, settledMinsAgo: 58, evidence: "Victory screen at 1:41:05.", clipAt: "1:41:05", paidMinsAgo: 54 },
+  { id: "m-1019", handle: "tobilane", question: "Will Tobi win his promo game?", rule: "Settles on the end-of-game screen.", status: "settled", outcome: "YES", yesPool: 411, noPool: 395, predictors: 377, closedMinsAgo: 95, settledMinsAgo: 58, evidence: "Victory screen at 1:41:05.", clipAt: "1:41:05", paidMinsAgo: 54 , settledByMod: "kalle_mod" },
   { id: "m-1020", handle: "pixiehart", question: "Will Pixie and her brother finish top 3?", rule: "Placement on the match end screen.", status: "settled", outcome: "NO", yesPool: 215, noPool: 197.50, predictors: 209, closedMinsAgo: 2_880, settledMinsAgo: 2_861, evidence: "Placed 7th.", clipAt: "0:58:22", paidMinsAgo: 2859, disputeOutcome: "rejected" },
   { id: "m-1021", handle: "arvolinn", question: "Will Arvo win the game in under 30 minutes?", rule: "Game clock when the ancient falls.", status: "settled", outcome: "YES", yesPool: 280.50, noPool: 301, predictors: 254, closedMinsAgo: 1_620, settledMinsAgo: 1_588, evidence: "Ancient down at 27:12.", clipAt: "1:27:12", paidMinsAgo: 1585 },
   { id: "m-1022", handle: "samoduya", question: "Will the viewer match go to overtime?", rule: "Overtime banner shown in game.", status: "settled", outcome: "YES", yesPool: 145, noPool: 167, predictors: 141, closedMinsAgo: 4_320, settledMinsAgo: 4_311, evidence: "OT at 0:00, won 3–2.", clipAt: "2:03:31", paidMinsAgo: 4310 },
-  { id: "m-1023", handle: "saskiarae", question: "Will Saskia lose the police in under 3 minutes?", rule: "Wanted level cleared, timer on screen.", status: "settled", outcome: "NO", yesPool: 387, noPool: 256, predictors: 298, closedMinsAgo: 2_100, settledMinsAgo: 2_092, evidence: "Arrested at 2:48.", clipAt: "1:15:48", paidMinsAgo: 2090 },
+  { id: "m-1023", handle: "saskiarae", question: "Will Saskia lose the police in under 3 minutes?", rule: "Wanted level cleared, timer on screen.", status: "settled", outcome: "NO", yesPool: 387, noPool: 256, predictors: 298, closedMinsAgo: 2_100, settledMinsAgo: 2_092, evidence: "Arrested at 2:48.", clipAt: "1:15:48", paidMinsAgo: 2090 , settledByMod: "nightowl" },
   { id: "m-1024", handle: "sophie-carter", question: "Will Sophie reach the lighthouse before sunset?", rule: "Arrival on camera before the official sunset time (16:41).", status: "settled", outcome: "YES", yesPool: 553, noPool: 210.50, predictors: 455, closedMinsAgo: 1_380, settledMinsAgo: 1_340, evidence: "At the lighthouse 16:22.", clipAt: "4:22:06", paidMinsAgo: 1335 },
   { id: "m-1025", handle: "alice", question: "Will chat hit 1,000 messages in 10 minutes?", rule: "Chat counter overlay on stream.", status: "settled", outcome: "YES", yesPool: 795, noPool: 316.50, predictors: 690, closedMinsAgo: 5_760, settledMinsAgo: 5_748, evidence: "1,000 at 8:51.", clipAt: "0:38:51", paidMinsAgo: 5746 },
 

@@ -15,7 +15,7 @@ import { durLabel } from "@/lib/autoclip";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StreamThumb } from "@/components/xp";
-import { AiBadge, AiCheckProgress, AiMarkIcon, AiTrustLine } from "@/components/ai";
+import { AiBadge, AiCheckProgress, aiChecking } from "@/components/ai";
 import { TxLink } from "@/components/WalletDialogs";
 import { cn, fmt, fmtUSD2, fmtUSDC } from "@/lib/utils";
 
@@ -53,7 +53,8 @@ export function positionOutcome(m: Market, p: Position) {
   const est = backToYou(m, p);
   if (p.tx === "failed") return { key: "failed", label: "Not placed", back: 0, line: "Nothing left your balance" };
   if (m.status === "open") return { key: "open", label: "Open", back: est, line: `Estimated ${fmtUSDC(est)} back if ${p.side} wins` };
-  if (m.status === "awaiting") return { key: "awaiting", label: "AI is checking", back: est, line: `${fmtUSDC(est)} back if ${p.side} wins (locked) · AI is checking the result` };
+  if (m.status === "awaiting") return { key: "awaiting", label: "Waiting for result", back: est, line: `${fmtUSDC(est)} back if ${p.side} wins (locked)` };
+  if (aiChecking(m)) return { key: "awaiting", label: "AI checking", back: est, line: `Result ${m.outcome} posted · AI checking before payout` };
   if (m.status === "voided") return { key: "refunded", label: "Refunded", back: p.amount, line: `${fmtUSDC(p.amount)} returned` };
   if (m.dispute) return { key: "held", label: "Under review", back: 0, line: "A dispute is open. Payouts are held." };
   if (m.outcome === p.side) return { key: "won", label: "Won", back: est, line: paidAt(m) && paidAt(m)! <= Date.now() ? `${fmtUSDC(est)} back to you` : `${fmtUSDC(est)} back to you · paying` };
@@ -139,7 +140,6 @@ function Receipt({ id, onNavigate }: { id: string; onNavigate: () => void }) {
         {(m.status === "settled" || m.status === "voided" || m.status === "awaiting") && <ResolutionBlock m={m} className="mt-5" />}
       </div>
       <div className="grid gap-3 border-t px-6 py-4 text-sm">
-        <AiTrustLine link={false} />
         <Link to="/how-it-works" onClick={onNavigate} className="text-label underline underline-offset-2 hover:text-foreground">How payouts work</Link>
       </div>
     </div>
@@ -165,8 +165,8 @@ export function EvidenceButton({ m }: { m: Market }) {
           <DialogHeader>
             <DialogTitle>Evidence · {m.question}</DialogTitle>
             <DialogDescription>{m.clip
-              ? <>Cut by xp.live AI from {s.name}’s stream when it settled the question: {durLabel(m.clip.sec)}, {m.clip.start} to {m.clip.end}, moment at {m.clip.moment}. The AI watched {m.clip.scannedFrom} to {m.clip.scannedTo} and matched this moment to the rule.</>
-              : <>{m.evidence}. Captured by xp.live AI from {s.name}’s stream at stream time {m.clipAt} and attached to the result.</>}</DialogDescription>
+              ? <>Cut from {s.name}’s stream when the result was posted: {durLabel(m.clip.sec)}, {m.clip.start} to {m.clip.end}. This is the clip the AI checked.</>
+              : <>{m.evidence}, at stream time {m.clipAt}. This is the moment the AI checked.</>}</DialogDescription>
           </DialogHeader>
           <StreamThumb s={{ ...s, live: true }} frame={3} className="rounded-lg">
             <span className="absolute bottom-2 left-2 rounded bg-black/80 px-2 py-0.5 font-mono text-xs text-white">{m.clip ? `${m.clip.start} – ${m.clip.end}` : m.clipAt}</span>
@@ -183,17 +183,14 @@ export function EvidenceButton({ m }: { m: Market }) {
 export function ResolutionBlock({ m, className }: { m: Market; className?: string }) {
   const s = streamerByHandle(m.handle);
   const [, force] = React.useReducer((x: number) => x + 1, 0);
-  React.useEffect(() => { const t = window.setInterval(force, 15_000); return () => window.clearInterval(t); }, []);
+  React.useEffect(() => { const t = window.setInterval(force, 1000); return () => window.clearInterval(t); }, []);
   const name = s?.name ?? m.handle;
+  const by = m.settledByMod ?? name;
   if (m.status === "awaiting") {
     return (
       <div className={cn("rounded-xl border p-4 text-sm", className)}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="font-semibold">Waiting for the result</p>
-          <AiBadge state="checking" size="sm" />
-        </div>
-        <AiCheckProgress m={m} className="mt-3" />
-        <p className="mt-3 text-muted-foreground">xp.live AI settles this question on the rule: “{m.rule}” {name} asked it but can’t decide or change the result. If the moment doesn’t happen by {clock(closedAt(m) + 3_600_000)}, the question is voided and every stake is returned.</p>
+        <p className="font-semibold">Waiting for {name} to settle</p>
+        <p className="mt-1 text-muted-foreground">AI checks the result before anyone is paid. No result by {clock(closedAt(m) + 3_600_000)}: everyone is refunded.</p>
       </div>
     );
   }
@@ -202,28 +199,33 @@ export function ResolutionBlock({ m, className }: { m: Market; className?: strin
       <div className={cn("rounded-xl border p-4", className)}>
         <dl className="text-sm">
           <Line k="Result"><span className="font-semibold">Voided</span></Line>
-          <Line k="Voided by"><span className="inline-flex items-center gap-1"><AiMarkIcon className="h-3.5 w-3.5" /> xp.live AI <span className="font-mono tabular text-muted-foreground">· {clock(settledAt(m))}</span></span></Line>
+          <Line k="Voided by">{name}</Line>
           <Line k="Reason">{m.voidReason}</Line>
-          <Line k="Refunds">All {fmt(m.predictors)} stakes returned in full</Line>
+          <Line k="Refunds">All {fmt(m.predictors)} stakes returned</Line>
         </dl>
       </div>
     );
   }
   if (m.status !== "settled") return null;
+  const checking = aiChecking(m);
   const d = disputeLine(m);
   const paid = paidAt(m);
   const paying = !paid || paid > Date.now();
   return (
     <div className={cn("rounded-xl border p-4", className)}>
-      <dl className="text-sm">
-        <Line k="Result"><span className={cn("font-display text-base font-bold", m.outcome === "YES" ? "text-yes" : "text-no")}>{m.outcome}</span></Line>
-        <Line k="Settled by"><AiBadge state="settled" size="sm" time={clock(settledAt(m))} /></Line>
-        <Line k="AI check"><span className="block">Found the moment{m.clipAt ? <> at <span className="font-mono tabular">{m.clipAt}</span></> : null} and matched it to the rule: “{m.rule}”</span></Line>
-        <Line k="Evidence"><span className="block">{m.evidence}</span><EvidenceButton m={m} /></Line>
-        <Line k="Asked by">{name} <span className="text-muted-foreground">· creators can’t settle or change results</span></Line>
-        <Line k="Dispute">{d.text}</Line>
-        <Line k="Payout">{m.dispute ? "Held until the dispute is decided" : paying ? <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Paying {fmt(winners(m))} winners</span> : <>Paid to {fmt(winners(m))} winners · {clock(paid!)}</>}</Line>
-      </dl>
+      <div className="flex items-center justify-between gap-2">
+        <span className={cn("font-display text-lg font-bold", m.outcome === "YES" ? "text-yes" : "text-no")}>Result: {m.outcome}</span>
+        <AiBadge checking={checking} size="sm" />
+      </div>
+      {checking ? <AiCheckProgress m={m} by={by} className="mt-3" /> : (
+        <dl className="mt-2 text-sm">
+          <Line k="Settled by">{by}{m.settledByMod && <span className="text-muted-foreground"> (mod)</span>} <span className="font-mono tabular text-muted-foreground">· {clock(settledAt(m))}</span></Line>
+          <Line k="AI check"><span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-neon" strokeWidth={3} /> Matches the rule</span></Line>
+          <Line k="Evidence"><EvidenceButton m={m} /></Line>
+          <Line k="Dispute">{d.text}</Line>
+          <Line k="Payout">{m.dispute ? "Held until the dispute is decided" : paying ? <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Paying {fmt(winners(m))} winners</span> : <>{fmt(winners(m))} winners paid · {clock(paid!)}</>}</Line>
+        </dl>
+      )}
     </div>
   );
 }
@@ -250,7 +252,7 @@ export function TrackRecordLine({ handle, className }: { handle: string; classNa
   if (!t.resolved) return <p className={cn("text-sm text-muted-foreground", className)}>No questions settled yet.</p>;
   return (
     <p className={cn("text-sm text-label", className)}>
-      <span className="font-mono tabular text-foreground">{t.resolved}</span> questions settled by AI · <span className="font-mono tabular text-foreground">{t.disputesRaised}</span> {t.disputesRaised === 1 ? "dispute" : "disputes"} raised, <span className="font-mono tabular text-foreground">{t.disputesUpheld}</span> upheld{t.medianCloseToPayout > 0 && <> · <span className="whitespace-nowrap">median <span className="font-mono tabular text-foreground">{t.medianCloseToPayout} min</span></span> from close to payout</>}
+      <span className="font-mono tabular text-foreground">{t.resolved}</span> questions settled, all checked by AI · <span className="font-mono tabular text-foreground">{t.disputesRaised}</span> {t.disputesRaised === 1 ? "dispute" : "disputes"} raised, <span className="font-mono tabular text-foreground">{t.disputesUpheld}</span> upheld{t.medianCloseToPayout > 0 && <> · <span className="whitespace-nowrap">median <span className="font-mono tabular text-foreground">{t.medianCloseToPayout} min</span></span> from close to payout</>}
     </p>
   );
 }
@@ -258,7 +260,7 @@ export function TrackRecordLine({ handle, className }: { handle: string; classNa
 export function TrackRecordGrid({ handle }: { handle: string }) {
   const t = useTrackRecord(handle);
   const items = [
-    ["Settled by AI", String(t.resolved)],
+    ["Settled", String(t.resolved)],
     ["Disputes raised", String(t.disputesRaised)],
     ["Disputes upheld", String(t.disputesUpheld)],
     ["Close to payout", t.medianCloseToPayout ? `${t.medianCloseToPayout} min` : "–"],

@@ -160,7 +160,7 @@ export default function Wallet() {
                       <TableCell className="text-right font-mono tabular">{fmtUSD2(p.amount)}</TableCell>
                       <TableCell className="min-w-[170px]">
                         <span className="flex items-center gap-1.5 font-semibold">{(p.tx === "submitting" || p.tx === "recorded") && <Loader2 className="h-3.5 w-3.5 animate-spin" />}{p.tx === "submitting" ? "Submitting" : p.tx === "recorded" ? "Recorded" : o.label}</span>
-                        <span className="block text-xs text-muted-foreground">{m.status === "open" ? <>Closes in <span className="font-mono tabular">{timeLeft(m.secondsLeft ?? 0)}</span> · estimate moves until then</> : o.key === "awaiting" ? "Locked · xp.live AI is checking the result" : o.key === "won" || o.key === "lost" ? `Result ${m.outcome}` : o.line}</span>
+                        <span className="block text-xs text-muted-foreground">{m.status === "open" ? <>Closes in <span className="font-mono tabular">{timeLeft(m.secondsLeft ?? 0)}</span> · estimate moves until then</> : o.key === "awaiting" ? "Locked · waiting for the result" : o.key === "won" || o.key === "lost" ? `Result ${m.outcome}` : o.line}</span>
                       </TableCell>
                       <TableCell className="text-right font-mono tabular">{back}</TableCell>
                       <TableCell className="whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>

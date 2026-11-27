@@ -178,13 +178,12 @@ function reduceSync(s: State, msg: SyncMsg): State {
       const { id, result, note, at, clip } = msg;
       if (!s.markets.some((m) => m.id === id && m.status === "awaiting")) return s;
       const markets = s.markets.map((m) =>
-        m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator.", settledAt: at } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: at, paidMinsAgo: 0, paidAt: at + 120_000, evidence: note, ...(clip ? { clip, clipAt: clip.moment } : {}) }
+        m.id !== id ? m : result === "VOID" ? { ...m, status: "voided" as const, voidReason: note || "Voided by the creator.", settledAt: at } : { ...m, status: "settled" as const, outcome: result, settledMinsAgo: 0, settledAt: at, aiCheck: "checking" as const, evidence: note, ...(clip ? { clip, clipAt: clip.moment } : {}) }
       );
-      const target = markets.find((m) => m.id === id)!;
       let credit = 0;
       s.positions.filter((p) => p.marketId === id && p.tx === "confirmed").forEach((p) => {
+        // Winnings are paid by the tick once the AI check passes; refunds go back straight away.
         if (result === "VOID") credit += p.amount;
-        else if (p.side === result) credit += backToYou(target, p);
       });
       return { ...s, markets, balance: Math.round((s.balance + credit) * 100) / 100 };
     }
@@ -276,19 +275,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (joiner && m.id === joiner.id && left > 0) next = { ...next, yesPool: next.yesPool + (toYes ? stake : 0), noPool: next.noPool + (toYes ? 0 : stake), predictors: next.predictors + 1 };
           return next;
         });
-        // Mock AI resolution: a question that closed during the demo is checked and settled by the
-        // xp.live AI resolver 40 s later and paid 5 s after that, so a tester can follow one
-        // prediction end to end. PLACEHOLDER: AI resolver service + settlement contract.
+        // Mock settlement: a question that closed during the demo is settled by its creator 25 s later,
+        // double-checked by AI for 12 s, then paid by the system 3 s after the check passes, so a tester
+        // can follow one prediction end to end. PLACEHOLDER: creator settle + AI check service + settlement contract.
         let balance = s.balance;
         let transfers = s.transfers;
         markets = markets.map((m) => {
-          if (m.status === "awaiting" && m.closedAt && m.script && now - m.closedAt > 40_000 && s.user?.channel !== m.handle)
+          if (m.status === "awaiting" && m.closedAt && m.script && now - m.closedAt > 25_000 && s.user?.channel !== m.handle)
           {
-            // The AI resolver posts YES/NO and attaches the evidence clip it cut (see lib/autoclip.ts).
+            // The creator settles YES/NO; xp.live attaches the evidence clip (see lib/autoclip.ts) and the AI starts its check.
             const clip = buildClip(m, now);
-            return { ...m, status: "settled" as const, outcome: m.script.outcome, evidence: m.script.evidence, clip, clipAt: clip.moment, settledMinsAgo: 0, settledAt: now };
+            return { ...m, status: "settled" as const, outcome: m.script.outcome, evidence: m.script.evidence, clip, clipAt: clip.moment, settledMinsAgo: 0, settledAt: now, aiCheck: "checking" as const };
           }
-          if (m.status === "settled" && m.settledAt && !m.paidAt && now - m.settledAt > 5_000) {
+          if (m.status === "settled" && m.aiCheck === "checking" && m.settledAt && now - m.settledAt > 12_000) {
+            return { ...m, aiCheck: "passed" as const, aiCheckedAt: now };
+          }
+          if (m.status === "settled" && m.settledAt && !m.paidAt && m.aiCheck !== "checking" && now - (m.aiCheckedAt ?? m.settledAt) > 3_000) {
             const wins = s.positions.filter((p) => p.marketId === m.id && p.tx === "confirmed" && p.side === m.outcome);
             for (const p of wins) {
               const back = backToYou(m, p);

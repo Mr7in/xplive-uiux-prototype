@@ -45,7 +45,7 @@ export function PinnedQuestion({ m, onOpen, className }: { m: Market; onOpen: ()
     <button type="button" onClick={onOpen} className={cn("group flex w-full items-center gap-3 rounded-xl border border-neon/40 bg-neon/[0.04] px-3 py-2.5 text-left transition hover:border-neon/70", className)}>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-xs text-label">
-          <span className="h-1.5 w-1.5 rounded-full bg-live" aria-hidden /> Question open · <span className={cn("font-mono tabular", secs <= 30 ? "font-bold text-warn" : "text-foreground")}>{timeLeft(secs)}</span> · <span className="inline-flex items-center gap-0.5 text-foreground"><AiMarkIcon className="h-3 w-3" />Settled by AI</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-live" aria-hidden /> Question open · <span className={cn("font-mono tabular", secs <= 30 ? "font-bold text-warn" : "text-foreground")}>{timeLeft(secs)}</span> · <span className="inline-flex items-center gap-0.5 text-foreground"><AiMarkIcon className="h-3 w-3" />Checked by AI</span>
         </span>
         <span className="mt-0.5 line-clamp-2 block text-sm font-semibold leading-snug">{m.question}</span>
       </span>

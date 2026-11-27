@@ -1,3 +1,4 @@
+import { AiMarkIcon } from "@/components/ai";
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -73,6 +74,7 @@ export function AskQuestion({ compact = false }: { compact?: boolean }) {
               {DURATIONS.map((d) => <ToggleGroupItem key={d.v} value={d.v}>{d.l}</ToggleGroupItem>)}
             </ToggleGroup>
           </div>
+          <p className="flex items-start gap-2 rounded-lg border border-foreground/15 bg-foreground/[0.03] px-3 py-2 text-xs text-label"><AiMarkIcon className="mt-px h-4 w-4 text-foreground" /><span><span className="font-semibold text-foreground">You or a mod settle it. AI double-checks it.</span> Before winners are paid, AI checks your result against this rule and the stream. Viewers see “Checked by AI”.</span></p>
           {busy && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">“{busy.question}” is still open. Close it before asking the next one.</p>}
           <Button type="submit" size="lg" disabled={!qOk || !!busy}><Plus /> Start question</Button>
         </form>
@@ -93,7 +95,7 @@ export function RunningQuestion({ m }: { m: Market }) {
         <SplitBar m={m} />
         <div className="flex justify-between font-mono text-xs"><span className="text-yes">YES {yesPct(m)}% · {fmt(m.yesPool)}</span><span className="text-muted-foreground">{fmt(m.predictors)} in</span><span className="text-no">{fmt(m.noPool)} · {100 - yesPct(m)}% NO</span></div>
         <div className="flex flex-wrap gap-2 pt-1">
-          <Button variant="secondary" onClick={() => { closeMarket(m.id); toast("Predictions closed", { description: "Propose the result once it’s decided on stream." }); }}><XCircle /> Close now</Button>
+          <Button variant="secondary" onClick={() => { closeMarket(m.id); toast("Predictions closed", { description: "Settle it once it’s decided on stream. AI double-checks before payout." }); }}><XCircle /> Close now</Button>
           <Button variant="outline" onClick={() => extendMarket(m.id, 60)}><TimerReset /> +1 min</Button>
           <Button variant="ghost" onClick={() => setConfirmVoid(true)}>Void</Button>
         </div>
@@ -114,7 +116,7 @@ export function NeedsResult({ m }: { m: Market }) {
       <CardContent className="space-y-3 pt-5">
         <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-warn"><Hourglass className="h-3.5 w-3.5" /> Needs your result</span><span className="text-xs text-label">Closed {m.closedMinsAgo ?? 0} min ago · {fmt(m.predictors)} waiting</span></div>
         <p className="font-display text-xl font-bold leading-snug">{m.question}</p>
-        <p className="text-sm text-label">{fmtUSDC(pool(m))} is waiting to be paid out. Unresolved questions are voided automatically after 60 minutes.</p>
+        <p className="text-sm text-label">{fmtUSDC(pool(m))} is waiting. You or a mod settle it, AI double-checks it, then xp.live pays out. Unsettled after 60 minutes: voided.</p>
         <Button asChild size="lg" className="w-full"><Link to={`/studio/predictions/${m.id}/result`}>Propose the result</Link></Button>
       </CardContent>
     </Card>

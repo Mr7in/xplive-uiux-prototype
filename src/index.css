@@ -115,3 +115,8 @@
   @media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
   .chat-safe { overflow-wrap: anywhere; word-break: break-word; max-height: 4.5em; overflow: hidden; }
 }
+
+/* How it works: AI scan line over the evidence frame */
+@keyframes hiw-scan { 0% { top: 6%; } 50% { top: 88%; } 100% { top: 6%; } }
+.hiw-scan { animation: hiw-scan 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .hiw-scan { animation: none; top: 50%; } }
