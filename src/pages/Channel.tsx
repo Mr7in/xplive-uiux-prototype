@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Textarea } from "@/components/ui/textarea";
 import { cn, compact, fmt, fmtUSDC, timeLeft } from "@/lib/utils";
 import { closedAt, when } from "@/lib/ledger";
+import { AiTrustLine } from "@/components/ai";
 import { ResolutionBlock, SideText, TrackRecordGrid, TrackRecordLine, positionOutcome } from "@/components/trust";
 import { pool, type Market } from "@/data/markets";
 import NotFound from "./NotFound";
@@ -185,6 +186,7 @@ function PastQuestions({ s }: { s: Streamer }) {
       <div>
         <p className="mb-2 text-sm font-semibold">{s.name}’s track record</p>
         <TrackRecordGrid handle={s.handle} />
+        <AiTrustLine className="mt-3" />
       </div>
       {list.length ? (
         <ul className="divide-y rounded-xl border">
@@ -197,7 +199,7 @@ function PastQuestions({ s }: { s: Streamer }) {
                   <span className="min-w-0">
                     <span className="block leading-snug">{m.question}</span>
                     <span className="text-xs text-muted-foreground">{when(closedAt(m))} · pool {fmtUSDC(pool(m))}</span>
-                    {mine.map((p) => { const o = positionOutcome(m, p); return <span key={p.id} className={cn("mt-0.5 block text-xs", o.key === "won" ? "font-semibold text-neon" : "text-label")}>You: <SideText side={p.side} /> {fmtUSDC(p.amount)} · {o.label === "Won" ? `won, ${fmtUSDC(o.back)} back to you` : o.label.toLowerCase()}</span>; })}
+                    {mine.map((p) => { const o = positionOutcome(m, p); return <span key={p.id} className={cn("mt-0.5 block text-xs", o.key === "won" ? "font-semibold text-neon" : "text-label")}>You: <SideText side={p.side} /> {fmtUSDC(p.amount)} · {o.label === "Won" ? `won, ${fmtUSDC(o.back)} back to you` : o.key === "awaiting" ? o.label : o.label.toLowerCase()}</span>; })}
                   </span>
                   <MarketStatus m={m} />
                 </button>
@@ -206,7 +208,7 @@ function PastQuestions({ s }: { s: Streamer }) {
             );
           })}
         </ul>
-      ) : <p className="text-sm text-muted-foreground">{s.name} hasn’t settled a question yet. Results show here with the evidence used.</p>}
+      ) : <p className="text-sm text-muted-foreground">No results from {s.name}’s questions yet. Each result shows here once xp.live AI settles it, with the evidence clip.</p>}
     </div>
   );
 }

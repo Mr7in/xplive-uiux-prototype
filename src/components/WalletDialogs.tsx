@@ -2,14 +2,14 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { AlertTriangle, Check, CheckCircle2, Copy, Droplets, Loader2, LogOut, Wallet as WalletIcon } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Copy, CreditCard, Droplets, Loader2, Lock, LogOut, Smartphone, Wallet as WalletIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { useStore, type WalletProvider } from "@/lib/store";
+import { useStore, type FiatMethod, type WalletProvider } from "@/lib/store";
 import { NETWORK, short } from "@/lib/chain";
 import { cn, fmtUSD2, fmtUSDC } from "@/lib/utils";
 
@@ -209,21 +209,182 @@ function ManualTab() {
   );
 }
 
+
+/* ───────────────────────── Fiat on-ramp (Circle) ───────────────────────── */
+
+/**
+ * Card, Apple Pay and Google Pay top-ups through Circle's on-ramp. The viewer pays in their own
+ * currency; Circle converts it to USDC and sends it to their xp.live wallet on Polygon.
+ * PLACEHOLDER: Circle on-ramp session (quote, hosted payment, ID check, webhook on settlement).
+ * Rate, fee and limits below are placeholders, not Circle's pricing.
+ */
+type Fiat = "EUR" | "USD";
+const RATE: Record<Fiat, number> = { EUR: 1.08, USD: 1 }; // PLACEHOLDER: live quote from the on-ramp
+const FEE = 0.015; // PLACEHOLDER: on-ramp processing fee
+const SYM: Record<Fiat, string> = { EUR: "€", USD: "$" };
+const METHODS: { m: FiatMethod; hint: string; icon: React.ElementType }[] = [
+  { m: "Apple Pay", hint: "Face ID or Touch ID", icon: Smartphone },
+  { m: "Google Pay", hint: "Saved cards on your Google account", icon: Smartphone },
+  { m: "Card", hint: "Visa, Mastercard, Maestro", icon: CreditCard },
+];
+const money = (n: number, c: Fiat) => `${SYM[c]}${n.toFixed(2)}`;
+
+export function fiatQuote(amount: number, cur: Fiat) {
+  const fee = Math.round(amount * FEE * 100) / 100;
+  const usdc = Math.max(0, Math.round((amount - fee) * RATE[cur] * 100) / 100);
+  return { fee, usdc };
+}
+
+function PoweredByCircle({ className }: { className?: string }) {
+  return (
+    <p className={cn("flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground", className)}>
+      <Lock className="h-3 w-3" /> Secure payment · Powered by <span className="font-semibold text-label">Circle</span>
+    </p>
+  );
+}
+
+function FiatTab() {
+  const { buyWithFiat, transfers } = useStore();
+  const [cur, setCur] = React.useState<Fiat>("EUR");
+  const [amount, setAmount] = React.useState("25");
+  const [method, setMethod] = React.useState<FiatMethod>("Apple Pay");
+  const [step, setStep] = React.useState<"form" | "pay" | "authorising" | "sent">("form");
+  const [hash, setHash] = React.useState("");
+  const amt = Number(amount) || 0;
+  const q = fiatQuote(amt, cur);
+  const tx = transfers.find((t) => t.txHash === hash);
+  const tooSmall = amt > 0 && amt < 5;
+  const tooBig = amt > 1000;
+
+  const pay = () => {
+    setStep("authorising");
+    window.setTimeout(() => { setHash(buyWithFiat(q.usdc, method)); setStep("sent"); }, 1600);
+  };
+
+  if (step === "sent" && tx) {
+    const k = (tx.confirmations ?? 0) / NETWORK.confirmations;
+    const stages = ["Payment approved", "Circle converts it to USDC", `USDC sent to your xp.live wallet on ${NETWORK.name}`];
+    const idx = tx.state === "confirmed" ? 3 : k > 0.5 ? 2 : 1;
+    return (
+      <div className="grid gap-4 py-2">
+        <div className="text-center">
+          {tx.state === "confirmed" ? <CheckCircle2 className="mx-auto h-10 w-10 text-neon" /> : <Loader2 className="mx-auto h-10 w-10 animate-spin text-neon" />}
+          <p className="mt-2 font-display text-xl font-bold">{tx.state === "confirmed" ? <><span className="text-neon">+{fmtUSDC(tx.amount)}</span> added</> : "Adding your funds"}</p>
+          <p className="text-sm text-muted-foreground">{tx.state === "confirmed" ? "It’s in your balance and ready to use." : `You paid ${money(amt, cur)} with ${method}.`}</p>
+        </div>
+        <ol className="grid gap-1.5 rounded-xl border p-3 text-sm">
+          {stages.map((l, i) => (
+            <li key={l} className={cn("flex items-center gap-2", i <= idx ? "text-foreground" : "text-muted-foreground")}>
+              {i < idx ? <Check className="h-3.5 w-3.5 text-neon" strokeWidth={3} /> : i === idx ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span className="mx-[5px] h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />}
+              {l}
+            </li>
+          ))}
+        </ol>
+        <TxLink hash={hash} className="mx-auto" pending={tx.state !== "confirmed"} />
+        <Button variant="secondary" onClick={() => { setStep("form"); setHash(""); }}>Add more</Button>
+        <PoweredByCircle />
+      </div>
+    );
+  }
+
+  if (step === "pay" || step === "authorising") {
+    return (
+      <div className="grid gap-4">
+        <div className="rounded-xl border bg-secondary/40 p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-sm text-label">Pay xp.live</p>
+            <p className="font-mono text-2xl font-bold tabular">{money(amt, cur)}</p>
+          </div>
+          <p className="mt-0.5 text-right text-xs text-muted-foreground">You get <span className="font-mono tabular text-foreground">{fmtUSDC(q.usdc)}</span></p>
+          {method === "Card" ? (
+            <div className="mt-4 grid gap-2">
+              <Label htmlFor="cc-num">Card number</Label>
+              <Input id="cc-num" inputMode="numeric" defaultValue="4242 4242 4242 4242" className="font-mono" autoComplete="cc-number" />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-1.5"><Label htmlFor="cc-exp">Expiry</Label><Input id="cc-exp" defaultValue="12 / 28" className="font-mono" autoComplete="cc-exp" /></div>
+                <div className="grid gap-1.5"><Label htmlFor="cc-cvc">CVC</Label><Input id="cc-cvc" defaultValue="123" className="font-mono" autoComplete="cc-csc" /></div>
+              </div>
+              <p className="text-xs text-muted-foreground">Preview: a test card is filled in and nothing is charged. 3-D Secure may ask your bank app to approve.</p>
+            </div>
+          ) : (
+            <div className="mt-4 grid place-items-center gap-2 rounded-lg border bg-background py-6 text-center">
+              <Smartphone className="h-7 w-7" />
+              <p className="text-sm font-semibold">{method === "Apple Pay" ? "Confirm with Face ID or double-click the side button" : "Choose a card in Google Pay and confirm"}</p>
+              <p className="text-xs text-muted-foreground">Preview: nothing is charged.</p>
+            </div>
+          )}
+        </div>
+        <Button size="lg" disabled={step === "authorising"} onClick={pay}>
+          {step === "authorising" ? <><Loader2 className="animate-spin" /> Approving payment…</> : `Pay ${money(amt, cur)}`}
+        </Button>
+        <button type="button" disabled={step === "authorising"} onClick={() => setStep("form")} className="text-sm text-label underline underline-offset-2 hover:text-foreground disabled:opacity-50">Back</button>
+        <PoweredByCircle />
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="fiat-amt">You pay</Label>
+          <div role="group" aria-label="Currency" className="inline-flex rounded-md bg-secondary p-0.5 text-xs">
+            {(["EUR", "USD"] as Fiat[]).map((c) => (
+              <button key={c} type="button" aria-pressed={cur === c} onClick={() => setCur(c)} className={cn("rounded px-2 py-1 font-semibold", cur === c ? "bg-background text-foreground" : "text-muted-foreground")}>{c}</button>
+            ))}
+          </div>
+        </div>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-lg text-muted-foreground">{SYM[cur]}</span>
+          <Input id="fiat-amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, "").slice(0, 7))} className="h-12 pl-8 font-mono text-lg" />
+        </div>
+        <div className="flex gap-1.5">{[10, 25, 50, 100].map((v) => <Button key={v} type="button" size="sm" variant="outline" onClick={() => setAmount(String(v))}>{SYM[cur]}{v}</Button>)}</div>
+        {tooSmall && <p className="text-sm text-coral-soft">The minimum top-up is {SYM[cur]}5.00.</p>}
+        {tooBig && <p className="text-sm text-coral-soft">The maximum is {SYM[cur]}1,000.00 per top-up.</p>}
+      </div>
+
+      <div role="radiogroup" aria-label="Payment method" className="grid gap-2">
+        {METHODS.map(({ m, hint, icon: Icon }) => (
+          <button key={m} type="button" role="radio" aria-checked={method === m} onClick={() => setMethod(m)}
+            className={cn("flex h-14 items-center gap-3 rounded-xl border px-4 text-left transition", method === m ? "border-foreground bg-secondary" : "hover:border-input hover:bg-secondary/60")}>
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary"><Icon className="h-4 w-4" /></span>
+            <span className="flex-1"><span className="block font-semibold">{m}</span><span className="text-xs text-muted-foreground">{hint}</span></span>
+            <span className={cn("h-4 w-4 rounded-full border-2", method === m ? "border-foreground bg-foreground shadow-[inset_0_0_0_3px_hsl(var(--background))]" : "border-muted-foreground/50")} aria-hidden />
+          </button>
+        ))}
+      </div>
+
+      <dl className="grid grid-cols-2 gap-y-1 rounded-xl bg-secondary p-3 text-sm" aria-label="Quote">
+        <dt className="text-muted-foreground">You pay</dt><dd className="text-right font-mono tabular">{money(amt, cur)}</dd>
+        <dt className="text-muted-foreground">Processing fee</dt><dd className="text-right font-mono tabular">{money(q.fee, cur)}</dd>
+        <dt className="text-muted-foreground">Rate</dt><dd className="text-right font-mono tabular">1 {cur} = {RATE[cur].toFixed(2)} USDC</dd>
+        <dt className="font-semibold">You get</dt><dd className="text-right font-mono font-bold tabular">{fmtUSDC(q.usdc)}</dd>
+      </dl>
+
+      <Button size="lg" disabled={amt < 5 || tooBig} onClick={() => setStep("pay")}>Continue with {method}</Button>
+      <p className="text-xs text-muted-foreground">Usually in your balance within a minute. Your first top-up may ask for a quick ID check. You don’t need a crypto wallet.</p>
+      <PoweredByCircle />
+    </div>
+  );
+}
+
 export function AddFundsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { claimFaucet, faucetClaimedToday } = useStore();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[92dvh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <div className="mb-1"><NetworkChip /></div>
           <DialogTitle>Add funds</DialogTitle>
-          <DialogDescription>Send USDC on {NETWORK.name}{NETWORK.testnet ? " (testnet)" : ""} to your xp.live wallet. It’s credited once the block is final, usually within a minute.</DialogDescription>
+          <DialogDescription>Pay by card, Apple Pay or Google Pay and it’s converted to USDC for you. Already hold USDC on {NETWORK.name}? Connect a wallet or send it.</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="connect">
-          <TabsList className="grid grid-cols-2 border-0 bg-secondary p-1 rounded-lg">
-            <TabsTrigger value="connect" className="h-9 justify-center rounded-md border-0 data-[state=active]:bg-background">Connect wallet</TabsTrigger>
-            <TabsTrigger value="manual" className="h-9 justify-center rounded-md border-0 data-[state=active]:bg-background">Send manually</TabsTrigger>
+        <Tabs defaultValue="fiat">
+          <TabsList className="grid grid-cols-3 border-0 bg-secondary p-1 rounded-lg">
+            <TabsTrigger value="fiat" className="h-9 justify-center rounded-md border-0 px-1 text-xs sm:text-sm data-[state=active]:bg-background">Card & Pay</TabsTrigger>
+            <TabsTrigger value="connect" className="h-9 justify-center rounded-md border-0 px-1 text-xs sm:text-sm data-[state=active]:bg-background">Crypto wallet</TabsTrigger>
+            <TabsTrigger value="manual" className="h-9 justify-center rounded-md border-0 px-1 text-xs sm:text-sm data-[state=active]:bg-background">Send USDC</TabsTrigger>
           </TabsList>
+          <TabsContent value="fiat"><FiatTab /></TabsContent>
           <TabsContent value="connect"><ConnectTab /></TabsContent>
           <TabsContent value="manual"><ManualTab /></TabsContent>
         </Tabs>

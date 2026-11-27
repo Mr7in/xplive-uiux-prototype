@@ -11,6 +11,7 @@ import { estimateBack } from "@/components/trust";
 import { LiveGrid } from "@/components/LiveGrid";
 import { LivePlayer } from "@/components/LivePlayer";
 import { PinnedQuestion, StreamChat } from "@/components/StreamChat";
+import { AiBadge } from "@/components/ai";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMedia } from "@/lib/useMedia";
 import { CategoryCard, ChannelAvatar, LiveBadge, MarketCard, MarketStatus, SectionHeader, SplitBar, StreamCard, ViewerCount, Verified, categoryStats } from "@/components/xp";
@@ -68,7 +69,7 @@ function QuestionLifecycle({ m }: { m: Market }) {
         {step === 2 && (
           <div className="rounded-xl border border-neon/40 p-3 text-sm">
             <p className="font-display text-lg font-bold">Result: <span className="text-yes">YES</span> · <span className="text-neon">{fmtUSDC(back)}</span> back to you</p>
-            <p className="mt-1 text-label">Resolved by {s.name}, who asked the question, with the moment from the stream as evidence.</p>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-label"><AiBadge size="sm" /> Checked against the stream and settled automatically. {s.name} asked the question but can’t change the result.</p>
             <p className="mt-2 text-xs text-muted-foreground">Example. Winnings land in your wallet within minutes; anyone can dispute for 2 hours.</p>
           </div>
         )}

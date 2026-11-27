@@ -79,7 +79,7 @@ export const badgeReviews = [
 export const killSwitches = [
   { key: "new_questions", name: "New questions", body: "Creators can start new YES/NO questions.", on: true, changed: "Oct 22 by Test Admin" },
   { key: "new_predictions", name: "New predictions", body: "Viewers can join open questions. Paused stakes are held, not lost.", on: true, changed: "Oct 22 by Test Admin" },
-  { key: "disputes", name: "Disputes", body: "Viewers can challenge a creator’s result within 2 hours.", on: true, changed: "—" },
+  { key: "disputes", name: "Disputes", body: "Viewers can challenge an AI result within 2 hours.", on: true, changed: "—" },
   { key: "settlement", name: "Automatic settlement", body: "Pay winners as soon as a creator proposes a result.", on: true, changed: "—" },
   { key: "referrals", name: "Referral bonuses", body: "Credit USDC bonuses for referred sign-ups.", on: false, changed: "Today by Test Admin" },
 ];

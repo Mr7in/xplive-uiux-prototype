@@ -12,6 +12,7 @@ import { SplitBar } from "@/components/xp";
 import { cn, fmt, fmtUSD2, fmtUSDC, timeLeft } from "@/lib/utils";
 import { NETWORK } from "@/lib/chain";
 import { useWalletUI } from "@/components/WalletDialogs";
+import { AiBadge, AiTrustLine } from "@/components/ai";
 import { PositionSteps, ResolutionBlock, SideText, TrackRecordLine, estimateBack, positionOutcome, useReceipt } from "@/components/trust";
 
 const AMOUNTS = [1, 5, 10, 25, 50];
@@ -88,7 +89,10 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
           </span>
         )}
       </div>
-      <p className="mt-1.5 flex gap-1.5 text-xs text-muted-foreground"><Info className="mt-px h-3.5 w-3.5 shrink-0" />{m.rule}</p>
+      <div className="mt-1.5 flex items-start justify-between gap-3">
+        <p className="flex gap-1.5 text-xs text-muted-foreground"><Info className="mt-px h-3.5 w-3.5 shrink-0" />{m.rule}</p>
+        {open && <AiBadge size="sm" />}
+      </div>
 
       <div className="mt-4">
         <SplitBar m={m} />
@@ -152,6 +156,7 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
 
               {tooMuch && <p className="flex items-center justify-between gap-2 rounded-lg bg-coral/10 px-3 py-2 text-sm text-coral-soft">That’s more than your balance. <Button size="sm" variant="outline" onClick={() => ui.open("add")}>Add funds</Button></p>}
               {amount > 0 && amount < 1 && <p className="text-sm text-coral-soft">The minimum is 1.00 USDC.</p>}
+              <AiTrustLine className="rounded-lg border px-3 py-2" />
               <Button size="lg" onClick={place} disabled={tooMuch || amount < 1}>Confirm prediction · {fmtUSDC(amount)}</Button>
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <Link to="/how-it-works" className="text-label underline underline-offset-2 hover:text-foreground">How payouts work</Link>
@@ -172,7 +177,7 @@ export function PredictPanel({ m, className }: { m: Market; className?: string }
             <SummaryRow k="Stake">{fmtUSDC(closedOnTicket.amount)}</SummaryRow>
           </dl>
           <p className="mt-2 text-sm font-semibold">This question closed before you confirmed. No funds were taken.</p>
-          <button type="button" onClick={() => document.getElementById(`result-${m.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })} className="mt-1 inline-block text-sm text-label underline underline-offset-2 hover:text-foreground">{m.status === "awaiting" ? "The result appears below when it settles" : "See the result"}</button>
+          <button type="button" onClick={() => document.getElementById(`result-${m.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })} className="mt-1 inline-block text-sm text-label underline underline-offset-2 hover:text-foreground">{m.status === "awaiting" ? "The AI posts the result below when it settles" : "See the result"}</button>
         </div>
       )}
 

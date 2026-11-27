@@ -200,3 +200,22 @@ Admin (`/admin`): overview, all questions, question review/dispute decision (`/a
 - **Phone home:** edge-to-edge video first, one-line open question under it, followed channels as an avatar row, 4 live channels, 3 predictions. Categories, Closing soon, Just settled, creator suggestions and offline follows are desktop only.
 - **Phone channel:** edge-to-edge player that sticks under the header while you scroll chat; compact channel header (share moves into the "more" menu).
 - **Live grid:** "Open questions only" is off by default and hidden on phones.
+
+## Iteration 4: AI settlement + fiat top-ups (Nov 2026)
+
+Synthetic-user feedback on iteration 3: viewers didn't trust a creator closing and settling their own question, and crypto-only funding felt unreal.
+
+- **AI settlement trustmark** (`components/ai.tsx`): from the viewer's side every question is checked and settled by xp.live AI, never by the creator. One mark (shield + check + spark, `AiMarkIcon` / `AiBadge`) is used everywhere:
+  - Ticket: "Settled by AI" pill beside the rule, and the trust line "Settled by AI, not by the creator" right above Confirm.
+  - Pinned question in chat, market cards ("Settled by AI" / "AI is checking the stream"), footer line, channel track record ("questions settled by AI").
+  - Resolution block: Settled by (AI · time), AI check (moment + rule matched), Evidence (clip cut by the AI), Asked by (creator, "can't settle or change results"), Dispute, Payout. Voided questions say "Voided by xp.live AI".
+  - Closed questions show live AI progress (`AiCheckProgress`): watching the stream > found the moment > cutting the clip > posting and paying. Demo questions advance on the 40 s settle clock.
+  - Predictions ledger column "Settled by", tab "AI checking"; How it works rewritten ("Who decides the result: xp.live AI, not the creator", "How the AI checks").
+  - Disputes stay human: an admin reviews a disputed AI result.
+  - Not changed: Creator Studio and the companion app still have manual settle buttons. Next step there: creators confirm or flag, the AI posts.
+- **Fiat top-ups through Circle** (`components/WalletDialogs.tsx`, `FiatTab`): Add funds opens on **Card & Pay** (Apple Pay, Google Pay, card), EUR/USD, quote (fee, rate, "You get"), payment step (Apple/Google Pay sheet or test card), then Payment approved > Circle converts to USDC > USDC sent to your wallet. Store action `buyWithFiat`. Crypto wallet and Send USDC stay as tabs 2 and 3.
+
+| Placeholder | Where | Real system |
+|---|---|---|
+| AI resolver (watch, match rule, clip, post) | `components/ai.tsx`, `lib/store.tsx` tick | AI resolver service; cost and scope still to agree |
+| Fiat quote, fee (1.5%), rate, limits (5 to 1,000) | `WalletDialogs.tsx` `fiatQuote` | Circle on-ramp quote, session, KYC and settlement webhook |

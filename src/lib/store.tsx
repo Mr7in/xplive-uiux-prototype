@@ -1,4 +1,5 @@
 import * as React from "react";
+import { NETWORK } from "@/lib/chain";
 import { buildClip } from "@/lib/autoclip";
 import { markets as seedMarkets, type Market, type Side, type EvidenceClip, multiplier } from "@/data/markets";
 import { depositAddressFor, mockHex } from "@/lib/chain";
@@ -36,6 +37,7 @@ export interface Position {
   txHash: string;
 }
 
+export type FiatMethod = "Apple Pay" | "Google Pay" | "Card";
 export type WalletProvider = "MetaMask" | "Coinbase Wallet" | "WalletConnect" | "Rabby";
 export interface ConnectedWallet { provider: WalletProvider; address: string; balance: number }
 
@@ -207,6 +209,8 @@ interface Store extends State {
   disconnectWallet: () => void;
   depositFromWallet: (amount: number) => string;
   reportManualDeposit: () => string;
+  /** Fiat on-ramp: card, Apple Pay or Google Pay through Circle, credited as USDC. PLACEHOLDER: Circle on-ramp session + webhook. */
+  buyWithFiat: (usdc: number, method: FiatMethod) => string;
   claimFaucet: () => void;
   withdraw: (amount: number) => string;
   setPayoutAddress: (address: string) => void;
@@ -272,15 +276,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (joiner && m.id === joiner.id && left > 0) next = { ...next, yesPool: next.yesPool + (toYes ? stake : 0), noPool: next.noPool + (toYes ? 0 : stake), predictors: next.predictors + 1 };
           return next;
         });
-        // Mock creator resolution: a question that closed during the demo is resolved by its creator
-        // 40 s later and paid 5 s after that, so a tester can follow one prediction end to end.
-        // PLACEHOLDER: creator resolution flow + settlement contract.
+        // Mock AI resolution: a question that closed during the demo is checked and settled by the
+        // xp.live AI resolver 40 s later and paid 5 s after that, so a tester can follow one
+        // prediction end to end. PLACEHOLDER: AI resolver service + settlement contract.
         let balance = s.balance;
         let transfers = s.transfers;
         markets = markets.map((m) => {
           if (m.status === "awaiting" && m.closedAt && m.script && now - m.closedAt > 40_000 && s.user?.channel !== m.handle)
           {
-            // The creator only says YES/NO; the auto-clipper attaches the evidence clip (see lib/autoclip.ts).
+            // The AI resolver posts YES/NO and attaches the evidence clip it cut (see lib/autoclip.ts).
             const clip = buildClip(m, now);
             return { ...m, status: "settled" as const, outcome: m.script.outcome, evidence: m.script.evidence, clip, clipAt: clip.moment, settledMinsAgo: 0, settledAt: now };
           }
@@ -412,6 +416,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const amount = 25;
         setState((s) => ({ ...s, transfers: [{ id, kind: "deposit", label: "Deposit from 0x5e1d…9c07", amount, state: "pending", confirmations: 0, txHash: hash, at: Date.now() }, ...s.transfers] }));
         confirm(id, 12, (s) => ({ balance: Math.round((s.balance + amount) * 100) / 100 }));
+        return hash;
+      },
+      buyWithFiat: (usdc, method) => {
+        const id = `fiat${Date.now()}`;
+        const hash = mockHex(id);
+        setState((s) => ({ ...s, transfers: [{ id, kind: "deposit", label: `Top-up with ${method} via Circle`, amount: usdc, state: "pending", confirmations: 0, txHash: hash, at: Date.now() }, ...s.transfers] }));
+        confirm(id, NETWORK.confirmations, (s) => ({ balance: Math.round((s.balance + usdc) * 100) / 100 }));
         return hash;
       },
       claimFaucet: () => {

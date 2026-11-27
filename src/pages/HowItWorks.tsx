@@ -3,6 +3,7 @@ import { usePageMeta } from "@/lib/meta";
 import { useStore } from "@/lib/store";
 import { ledgerStats, DISPUTE_WINDOW_MIN } from "@/lib/ledger";
 import { NETWORK } from "@/lib/chain";
+import { AI_STEPS, AiBadge } from "@/components/ai";
 import { fmt } from "@/lib/utils";
 
 /**
@@ -10,24 +11,27 @@ import { fmt } from "@/lib/utils";
  * PLACEHOLDER: final copy approved for custody, withdrawals and the resolution model.
  */
 export default function HowItWorks() {
-  usePageMeta("How payouts work", "Who decides results, how evidence and disputes work, where your USDC sits and how withdrawals work.");
+  usePageMeta("How payouts work", "How xp.live AI settles results, how evidence and disputes work, where your USDC sits and how withdrawals work.");
   const { markets } = useStore();
   const st = ledgerStats(markets);
   const sections: [string, React.ReactNode][] = [
-    ["Who decides the result", <>The creator who asked the question posts the result, YES or NO, from their studio as soon as the moment happens on stream. Their name and the time are shown on every settled question. If a creator can’t settle within 60 minutes of closing, the question is voided and every stake goes back.</>],
-    ["Evidence", <>A result can’t be posted without evidence: the creator marks the moment on stream and a frame or short clip is attached to the question. Anyone can open it from the result.</>],
+    ["Who decides the result", <>xp.live AI, not the creator. Creators only ask the question and write the rule. When the question closes, the AI watches the stream, finds the moment the rule describes, checks the outcome against the rule and posts YES or NO. The creator, the viewers and xp.live staff can’t pick or change the result. If the moment doesn’t happen within 60 minutes of closing, the AI voids the question and every stake goes back.</>],
+    ["How the AI checks", <><span className="block">Every result goes through the same four steps, in order:</span>{AI_STEPS.map((x, i) => <span key={x.label} className="mt-1 block"><span className="font-mono tabular text-foreground">{i + 1}.</span> {x.label}</span>)}<span className="mt-2 block">The same check runs on every question on xp.live, for every creator. Nobody gets a different rulebook.</span></>],
+    ["Evidence", <>The AI cuts a short clip of the stream around the moment it used and attaches it to the result, with the stream time. Anyone can open it from the result, so you can see exactly what the AI saw.</>],
     ["Disputes", <>If you think a result is wrong, dispute it within {DISPUTE_WINDOW_MIN / 60} hours of the result from your wallet. A 5.00 USDC bond is held and returned if you’re right. An xp.live admin reviews the stream recording and either upholds the result or corrects it; payouts on that question are held until then. Every creator’s disputes raised and upheld are public on their channel.</>],
     ["What you get back", <>Every stake on a question goes into one pool. When the result is in, the winning side shares the pool in proportion to their stakes, less a 4% fee (3% platform, 1% creator). The figure on your ticket is an estimate while the question is open and locks when it closes.</>],
+    ["Adding funds", <>Top up with a card, Apple Pay or Google Pay. Our payment partner Circle takes the payment in your currency, converts it to USDC and sends it straight to your xp.live wallet, usually within a minute. You don’t need a crypto wallet. If you already hold USDC on {NETWORK.name}, you can connect a wallet or send it instead.</>],
     ["Where your funds sit", <>Your balance is USDC in your own xp.live wallet on {NETWORK.name}{NETWORK.testnet ? " (a test network: test USDC has no value)" : ""}. When you predict, your stake moves into the question’s pool contract; winnings move back to your wallet automatically, usually within minutes of the result. Every movement has a transaction you can check.</>],
     ["Withdrawals", <>Withdraw to a payout address you’ve verified by signing a message. The minimum is 5.00 USDC; amounts above 1,000.00 USDC are reviewed by a person first. A new payout address waits 72 hours before it can be used.</>],
   ];
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 md:px-8">
       <h1 className="font-display text-4xl font-bold">How payouts work</h1>
-      <p className="mt-3 text-lg text-label">Creators settle their own questions, with evidence, and anyone can challenge a result. In the last 7 days, <span className="font-mono tabular text-foreground">{fmt(st.settledThisWeek)}</span> questions were settled with a median of <span className="font-mono tabular text-foreground">{st.medianPayoutMin} min</span> from result to payout.</p>
+      <div className="mt-4"><AiBadge /></div>
+      <p className="mt-3 text-lg text-label">Every question is checked and settled automatically by xp.live AI, never by the creator who asked it. Every result comes with the clip the AI used, and anyone can challenge it. In the last 7 days, <span className="font-mono tabular text-foreground">{fmt(st.settledThisWeek)}</span> questions were settled with a median of <span className="font-mono tabular text-foreground">{st.medianPayoutMin} min</span> from result to payout.</p>
       <div className="mt-8 divide-y border-y">
         {sections.map(([h, b]) => (
-          <section key={h} className="grid gap-2 py-5 md:grid-cols-[220px_minmax(0,1fr)] md:gap-6">
+          <section key={h} id={h === "Who decides the result" ? "ai" : undefined} className="grid gap-2 py-5 md:grid-cols-[220px_minmax(0,1fr)] md:gap-6">
             <h2 className="font-display text-lg font-semibold">{h}</h2>
             <p className="text-label">{b}</p>
           </section>

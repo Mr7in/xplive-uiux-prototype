@@ -1,3 +1,4 @@
+import { AiMarkIcon } from "@/components/ai";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { Clock, Users, CheckCircle2, CircleSlash, Hourglass, Radio, BadgeCheck } from "lucide-react";
@@ -156,7 +157,7 @@ export function MarketStatus({ m }: { m: Market }) {
         <Clock className="h-3.5 w-3.5" /> <span className="font-mono tabular">{timeLeft(m.secondsLeft ?? 0)}</span>
       </span>
     );
-  if (m.status === "awaiting") return <Badge variant="warning"><Hourglass className="h-3 w-3" /> Awaiting result</Badge>;
+  if (m.status === "awaiting") return <Badge variant="warning"><Hourglass className="h-3 w-3" /> AI checking</Badge>;
   if (m.status === "voided") return <Badge variant="muted"><CircleSlash className="h-3 w-3" /> Voided</Badge>;
   if (m.dispute) return <Badge variant="danger">Disputed</Badge>;
   return (
@@ -194,6 +195,9 @@ export function MarketCard({ m, className }: { m: Market; className?: string }) 
         <span className="text-muted-foreground">{compactUSDC(pool(m))} · {fmt(m.predictors)}</span>
         <span className="text-no">{100 - p}% NO</span>
       </div>
+      {m.status !== "voided" && (
+        <p className="inline-flex items-center gap-1 text-[11px] text-label"><AiMarkIcon className="h-3 w-3 text-foreground" />{m.status === "open" ? "Settled by AI" : m.status === "awaiting" ? "AI is checking the stream" : "Settled by AI"}</p>
+      )}
       {m.status === "open" && (
         <div className="grid grid-cols-2 gap-2">
           <span className="rounded-lg bg-yes-tint px-3 py-2 text-sm font-semibold text-yes">Yes <span className="float-right font-mono text-xs leading-5">{multiplier(m, "YES").toFixed(2)}×</span></span>

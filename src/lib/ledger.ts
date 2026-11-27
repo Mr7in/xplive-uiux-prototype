@@ -49,7 +49,7 @@ export const winners = (m: Market) => (m.status === "settled" && m.outcome ? sid
 /** Total paid back to winners: the pool less the 4% fee. */
 export const paidOut = (m: Market) => Math.round(pool(m) * 0.96 * 100) / 100;
 
-/** Dispute window: 2 hours from the creator's result. */
+/** Dispute window: 2 hours from the AI result. */
 export const DISPUTE_WINDOW_MIN = 120;
 export function disputeLine(m: Market, now = Date.now()) {
   if (m.dispute) return { open: true, text: `Dispute under review · filed by ${m.dispute.by}. Payouts are held until an admin decides.` };
@@ -86,7 +86,7 @@ export function ledgerStats(markets: Market[], now = Date.now()) {
     settledThisWeek: week.length,
     winnersPaid24h: paid24.reduce((a, m) => a + winners(m), 0),
     paidThisWeek: week.filter((m) => paidAt(m)).reduce((a, m) => a + paidOut(m), 0),
-    /** Minutes from the creator's result to winnings in wallets. */
+    /** Minutes from the AI result to winnings in wallets. */
     medianPayoutMin: Math.max(1, Math.round(median(paid.map((m) => (paidAt(m)! - settledAt(m)) / 60_000)))),
     disputesThisWeek: week.filter((m) => m.dispute || m.disputeOutcome).length,
   };
